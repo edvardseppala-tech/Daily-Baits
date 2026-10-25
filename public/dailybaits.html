@@ -1,0 +1,905 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Daily Baits</title>
+<meta name="description" content="One water a day. Ten casts. Read the water, cast, and reel in whatever is lurking.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#F3F6F2; --ink2:#FFFFFF; --ink3:#EAF1EB;
+  --line:#DCE4DD; --line-soft:#E8EDE8;
+  --chalk:#23342A; --dim:#6E7D74; --dimmer:#9CAAA1;
+  --flag:#1F7A4C; --gold:#1F7A4C; --warn:#C0492F;
+  --t0:#7E8C83; --t1:#3F8B57; --t2:#2E7FB0; --t3:#7B5BC4; --t4:#C98A1B;
+  --sans:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --mono:'DM Mono',ui-monospace,'SF Mono',Menlo,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--ink);color:var(--chalk)}
+body{font-family:var(--sans);font-size:15px;line-height:1.45;overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+button{font-family:inherit;color:inherit}
+#app{max-width:460px;margin:0 auto;min-height:100%;display:flex;flex-direction:column;padding:10px 16px calc(14px + env(safe-area-inset-bottom))}
+
+/* ---- top bar ---- */
+.top{display:flex;align-items:center;gap:10px;padding:2px 0 8px}
+.brand{flex:1;min-width:0}
+.brand b{display:block;font-size:20px;font-variation-settings:'wdth' 82,'wght' 760;letter-spacing:.01em;line-height:1.1}
+.brand small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.iconBtn{border:1px solid var(--line);background:var(--ink2);border-radius:10px;height:36px;padding:0 12px;
+  font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer}
+.iconBtn i{font-style:normal;color:var(--flag);margin-left:4px}
+
+/* ---- hud ---- */
+.hudRow{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px}
+.hudRow div{background:var(--ink2);border:1px solid var(--line-soft);border-radius:10px;padding:5px 8px}
+.hudRow span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.hudRow b{display:block;font-size:16px;font-variation-settings:'wdth' 82,'wght' 600;letter-spacing:.02em;white-space:nowrap}
+.hudRow b small{font-size:10px;color:var(--dim);font-family:var(--mono);font-weight:400}
+
+/* ---- stage ---- */
+.stage{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#cfe3e8;align-self:center;touch-action:none}
+canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.probe{position:absolute;pointer-events:none;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  background:rgba(255,255,255,.9);border:1px solid var(--line);color:var(--chalk);padding:3px 7px;border-radius:6px;white-space:nowrap;
+  transform:translate(-50%,-150%);opacity:0;transition:opacity .15s}
+.probe.on{opacity:1}
+.banner{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) scale(.9);pointer-events:none;text-align:center;opacity:0;transition:opacity .12s,transform .12s}
+.banner.on{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.banner b{display:block;font-size:40px;font-variation-settings:'wdth' 70,'wght' 850;color:#fff;letter-spacing:.04em;text-shadow:0 2px 0 rgba(35,52,42,.35)}
+.banner small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:#fff;text-shadow:0 1px 0 rgba(35,52,42,.4)}
+
+.toast{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:14px;
+  padding:10px 12px;display:flex;gap:10px;align-items:center;transform:translateY(130%);transition:transform .25s;pointer-events:none}
+.toast.on{transform:none}
+.toast .sw{width:44px;height:28px;flex:none}
+.toast .tx{flex:1;min-width:0}
+.toast .tx b{display:block;font-size:15px;font-variation-settings:'wght' 650;line-height:1.2}
+.toast .tx small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.toast .pt{font-family:var(--mono);font-size:13px;color:var(--flag);white-space:nowrap}
+.newTag{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;background:var(--flag);color:#fff;border-radius:99px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+
+/* meter */
+.meter,.reel{position:absolute;left:12px;right:12px;bottom:12px;background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:14px;padding:10px 12px 12px;display:none}
+.meter.on,.reel.on{display:block}
+.mLabel{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:7px}
+.mLabel b{color:var(--chalk);font-weight:500}
+.bar{position:relative;height:18px;border-radius:9px;background:var(--ink3);overflow:hidden}
+.bar .sweet{position:absolute;top:0;bottom:0;left:42.5%;width:15%;background:#BFE0C9}
+.bar .good{position:absolute;top:0;bottom:0;left:30%;width:40%;background:#DDEEDF}
+.bar .needle{position:absolute;top:-2px;bottom:-2px;width:3px;margin-left:-1.5px;background:var(--chalk);border-radius:2px}
+.reel .zone{position:absolute;top:0;bottom:0;background:#9FD3B0;border-left:2px solid var(--flag);border-right:2px solid var(--flag)}
+.reel .snap{position:absolute;top:0;bottom:0;right:0;width:8%;background:repeating-linear-gradient(45deg,#F2C9BF 0 4px,#F8E1DA 4px 8px)}
+.prog{height:6px;border-radius:3px;background:var(--ink3);margin-top:8px;overflow:hidden}
+.prog i{display:block;height:100%;width:30%;background:var(--flag);border-radius:3px}
+.reelHint{margin-top:7px;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);text-align:center}
+
+/* ---- controls ---- */
+.controls{display:flex;gap:8px;margin-top:10px;align-items:stretch}
+.lures{display:flex;gap:6px;flex:1}
+.lure{flex:1;border:1px solid var(--line);background:var(--ink2);border-radius:12px;padding:6px 4px;cursor:pointer;text-align:center;touch-action:manipulation}
+.lure b{display:block;font-size:13px;font-variation-settings:'wght' 620}
+.lure small{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.lure.on{border-color:var(--flag);box-shadow:inset 0 0 0 1px var(--flag);background:#F1F8F2}
+.lure.on small{color:var(--flag)}
+.primary{flex:0 0 108px;border:0;border-radius:12px;background:var(--flag);color:#fff;font-weight:800;font-size:15px;letter-spacing:.02em;cursor:pointer;touch-action:manipulation;transition:transform .08s}
+.primary:active{transform:scale(.97)}
+.primary:disabled{background:var(--dimmer);cursor:default}
+.hint{margin-top:8px;text-align:center;font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);min-height:15px}
+
+/* ---- sheets ---- */
+.sheet{position:fixed;inset:0;background:rgba(35,52,42,.32);display:none;align-items:flex-end;justify-content:center;z-index:10}
+.sheet.on{display:flex}
+.panel{width:100%;max-width:460px;max-height:90vh;overflow:auto;background:var(--ink);border-radius:20px 20px 0 0;padding:16px 16px calc(20px + env(safe-area-inset-bottom))}
+.panelHead{display:flex;align-items:center;margin-bottom:10px}
+.panelHead h2{flex:1;margin:0;font-size:22px;font-variation-settings:'wdth' 82,'wght' 760}
+.close{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--ink2);cursor:pointer;font-family:var(--mono)}
+.kicker{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:14px 0 6px}
+.tabs{display:flex;gap:6px;margin-bottom:10px;overflow-x:auto}
+.tab{border:1px solid var(--line);background:var(--ink2);border-radius:99px;padding:5px 11px;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;cursor:pointer;white-space:nowrap}
+.tab.on{background:var(--chalk);color:#fff;border-color:var(--chalk)}
+.book{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card{background:var(--ink2);border:1px solid var(--line-soft);border-radius:14px;padding:10px}
+.card canvas{width:100%;height:46px;margin-bottom:6px;cursor:default}
+.card b{display:block;font-size:14px;font-variation-settings:'wght' 620;line-height:1.2}
+.card p{margin:4px 0 0;font-size:12px;color:var(--dim);line-height:1.35}
+.card .hab{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--chalk);margin-top:6px}
+.card .rec{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-top:2px}
+.card.unk b{color:var(--dimmer)}
+.chip{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;border-radius:99px;padding:1px 7px;color:#fff;margin-top:4px}
+.bigScore{display:flex;gap:8px}
+.bigScore div{flex:1;background:var(--ink2);border:1px solid var(--line-soft);border-radius:14px;padding:10px 12px}
+.bigScore span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
+.bigScore b{display:block;font-size:28px;font-variation-settings:'wdth' 78,'wght' 760;line-height:1.1}
+.rows{background:var(--ink2);border:1px solid var(--line-soft);border-radius:14px;overflow:hidden}
+.row{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line-soft)}
+.row:first-child{border-top:0}
+.row .n{font-family:var(--mono);font-size:10px;color:var(--dimmer);width:16px}
+.row .dot{width:9px;height:9px;border-radius:50%;flex:none}
+.row .nm{flex:1;min-width:0;font-size:14px}
+.row .nm small{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;color:var(--dim);margin-left:6px}
+.row .v{font-family:var(--mono);font-size:12px;color:var(--chalk)}
+.row.me{background:#F1F8F2}
+.mb{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;background:var(--t4);color:#fff;border-radius:99px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+.btnRow{display:flex;gap:8px;margin-top:14px}
+.btnRow button{flex:1;min-height:46px;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer}
+.btnRow .p{background:var(--flag);color:#fff;border:0}
+.btnRow .s{background:var(--ink2);border:1px solid var(--line)}
+.howto ol{margin:0;padding-left:18px}
+.howto li{margin:0 0 6px}
+.note{font-size:12px;color:var(--dim);margin-top:8px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand"><b>Daily Baits</b><small id="sub">#1 · Still Lake</small></div>
+    <button class="iconBtn" id="howBtn">?</button>
+    <button class="iconBtn" id="boardBtn">Board</button>
+    <button class="iconBtn" id="bookBtn">Book<i id="bookCount">0</i></button>
+  </header>
+  <div class="hudRow">
+    <div><span>Cast</span><b id="hCast">1<small>/10</small></b></div>
+    <div><span>Bag</span><b id="hBag">0.0<small> kg</small></b></div>
+    <div><span>Points</span><b id="hPts">0</b></div>
+    <div><span>Wind</span><b id="hWind">—</b></div>
+  </div>
+  <div class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="probe" id="probe"></div>
+    <div class="banner" id="banner"><b>STRIKE!</b><small>TAP NOW</small></div>
+    <div class="toast" id="toast"></div>
+    <div class="meter" id="meter">
+      <div class="mLabel"><span>Accuracy</span><b>Tap to release</b></div>
+      <div class="bar"><div class="good"></div><div class="sweet"></div><div class="needle" id="mNeedle"></div></div>
+    </div>
+    <div class="reel" id="reel">
+      <div class="mLabel"><span id="rPull">Steady pull</span><b>Line tension</b></div>
+      <div class="bar"><div class="zone" id="rZone"></div><div class="snap"></div><div class="needle" id="rNeedle"></div></div>
+      <div class="prog"><i id="rProg"></i></div>
+      <div class="reelHint">Hold to reel · release to give line</div>
+    </div>
+  </div>
+  <div class="controls">
+    <div class="lures" id="lures"></div>
+    <button class="primary" id="castBtn">Cast</button>
+  </div>
+  <div class="hint" id="hint">Tap the water to aim</div>
+</div>
+
+<div class="sheet" id="sheet"><div class="panel" id="panel"></div></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   DATA
+   ===================================================================== */
+const CASTS = 10;
+const W = 360, H = 600;
+const BANDS = ['Shallow', 'Mid', 'Deep'];
+const TIERS = [
+  { k: 'Common',    m: 1,   c: '#7E8C83', w: 52, sq: '⬜' },
+  { k: 'Uncommon',  m: 1.6, c: '#3F8B57', w: 26, sq: '🟩' },
+  { k: 'Rare',      m: 2.6, c: '#2E7FB0', w: 12, sq: '🟦' },
+  { k: 'Epic',      m: 4.5, c: '#7B5BC4', w: 4.5, sq: '🟪' },
+  { k: 'Legendary', m: 9,   c: '#C98A1B', w: 1.3, sq: '🟨' },
+];
+const LURES = [
+  { id: 'popper',  name: 'Popper',  band: 0 },
+  { id: 'spinner', name: 'Spinner', band: 1 },
+  { id: 'jig',     name: 'Jig',     band: 2 },
+];
+// Shadow body types. A fish's shadow is drawn from its species' body most of
+// the time, but not always, so a shape is a clue and never a giveaway.
+const BODIES = ['slim', 'round', 'small', 'long', 'broad'];
+
+const S = (id, name, tier, band, cover, lure, min, max, body, hint, desc) =>
+  ({ id, name, tier, band, cover, lure, min, max, body, hint, desc });
+
+const VENUES = [
+  { id: 'lake', name: 'Still Lake',
+    pal: { land: '#D9E8CE', bank: '#C3E0AE', w0: '#C4E3E4', w1: '#92C4D2', w2: '#5F9BB5', weed: '#5E9970', rock: '#9AA6A0', log: '#8C7556' },
+    species: [
+      S('perch', 'Perch', 0, 1, 'weed', 'spinner', .1, .8, 'small', 'Stripes in the weed, middle water.', 'Bold and hungry. Usually the first fish anyone catches.'),
+      S('bream', 'Bream', 0, 2, 'open', 'jig', .5, 3.2, 'round', 'Slow, deep, out in the open.', 'Moves in slow groups over the soft bottom.'),
+      S('pike', 'Pike', 1, 0, 'weed', 'spinner', 1, 9, 'slim', 'Ambushes from shallow weed.', 'Waits in the weed and hits flashing lures hard.'),
+      S('zander', 'Zander', 2, 2, 'structure', 'jig', 1, 7, 'slim', 'Shy of light. Deep, near rocks or logs.', 'Glassy eyes made for the dark. Bites softly.'),
+      S('tench', 'Golden Tench', 3, 0, 'weed', 'popper', 1, 4.5, 'broad', 'Gold in the shallows, under the lily weed.', 'A rare golden form of the tench. Easy to remember.'),
+      S('kaiser', 'Old Kaiser', 4, 2, 'structure', 'jig', 10, 26, 'broad', 'The lake legend sleeps by the deepest snag.', 'A huge mirror carp anglers have chased for decades.'),
+    ] },
+  { id: 'river', name: 'Fast River',
+    pal: { land: '#DCE6CF', bank: '#BFD9AC', w0: '#C9E2EC', w1: '#94BFD8', w2: '#5689B0', weed: '#5B9470', rock: '#98A2A6', log: '#86704F' },
+    species: [
+      S('grayling', 'Grayling', 0, 1, 'open', 'spinner', .2, 1.3, 'slim', 'Open current at middle depth.', 'Has a tall sail-like fin and smells faintly of thyme.'),
+      S('trout', 'Brown Trout', 0, 0, 'structure', 'popper', .3, 3, 'small', 'Shallow, tucked behind rocks.', 'Takes flies off the surface at dusk.'),
+      S('chub', 'Chub', 1, 0, 'weed', 'popper', .5, 3.5, 'round', 'Shallow weed by the bank.', 'Eats nearly anything and spooks at shadows.'),
+      S('barbel', 'Barbel', 2, 2, 'structure', 'jig', 1, 7, 'long', 'Deep gravel and boulders.', 'Feels the bottom with its whiskers. Pulls very hard.'),
+      S('salmon', 'Atlantic Salmon', 3, 1, 'open', 'spinner', 3, 16, 'slim', 'Running mid water, out in the open.', 'Fresh from the sea, still silver.'),
+      S('huchen', 'Huchen', 4, 2, 'structure', 'jig', 8, 32, 'long', 'The river wolf hunts under deep logs.', 'Danube salmon. Some people fish a lifetime and never see one.'),
+    ] },
+  { id: 'coast', name: 'Rocky Coast',
+    pal: { land: '#E9DFC2', bank: '#E4D2A6', w0: '#BFE3E0', w1: '#7FBCC9', w2: '#3F7E9E', weed: '#5C8F6A', rock: '#8F9A98', log: '#7F6C53' },
+    species: [
+      S('mackerel', 'Mackerel', 0, 1, 'open', 'spinner', .2, 1, 'slim', 'Fast schools in open mid water.', 'Striped, quick and everywhere in summer.'),
+      S('pollock', 'Pollock', 0, 2, 'structure', 'jig', .5, 5, 'small', 'Deep along the rock walls.', 'Dives for the rocks the moment it is hooked.'),
+      S('bass', 'Sea Bass', 1, 0, 'structure', 'popper', 1, 6, 'broad', 'Shallow white water around rocks.', 'Hunts in the surf where waves break.'),
+      S('cod', 'Cod', 2, 2, 'open', 'jig', 2, 16, 'round', 'Deep and out in the open.', 'A huge mouth and a bigger appetite.'),
+      S('seatrout', 'Sea Trout', 3, 0, 'weed', 'spinner', 1, 8, 'slim', 'Hides in shallow kelp.', 'A trout that went to sea and came back silver.'),
+      S('tuna', 'Bluefin Tuna', 4, 2, 'open', 'jig', 40, 180, 'broad', 'Sometimes a giant passes through the deep open water.', 'Built like a torpedo. Fights like one too.'),
+    ] },
+  { id: 'ice', name: 'Frozen Tarn',
+    pal: { land: '#F4F7F7', bank: '#E2ECEC', w0: '#D7EBF0', w1: '#A9CFDD', w2: '#6F9FBC', weed: '#6F9C86', rock: '#A3ADB0', log: '#8E7C66' },
+    species: [
+      S('whitefish', 'Whitefish', 0, 1, 'open', 'spinner', .3, 2, 'small', 'Open water at middle depth.', 'Pale and plain. Good eating.'),
+      S('char', 'Arctic Char', 0, 2, 'open', 'jig', .3, 3, 'slim', 'Cold and deep.', 'Has a red belly, like a sunset under the ice.'),
+      S('burbot', 'Burbot', 1, 2, 'structure', 'jig', .5, 5, 'long', 'Feeds at night between deep rocks.', 'The only freshwater cod. A slippery character.'),
+      S('laketrout', 'Lake Trout', 2, 1, 'structure', 'spinner', 2, 12, 'slim', 'Cruises mid water near rocks.', 'Lives slowly in the cold and can reach a great age.'),
+      S('ghostpike', 'Ghost Pike', 3, 0, 'weed', 'popper', 4, 12, 'long', 'A pale shape in the frozen reeds.', 'A pike so pale the ice seems to see through it.'),
+      S('taimen', 'Taimen', 4, 2, 'structure', 'jig', 10, 40, 'long', 'Under the deepest snag something ancient waits.', 'The largest salmon on Earth. Myths follow it around.'),
+    ] },
+];
+const ALL_SPECIES = VENUES.flatMap(v => v.species.map(s => ({ ...s, venue: v.id })));
+
+/* =====================================================================
+   SEED / RNG
+   ===================================================================== */
+const EPOCH = Date.UTC(2026, 9, 25);
+function dayNumber() {
+  const d = new Date();
+  return Math.floor((Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) - EPOCH) / 864e5) + 1;
+}
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function hash(...n) { let h = 2166136261; for (const x of n) { h ^= x | 0; h = Math.imul(h, 16777619); } return h >>> 0; }
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const pick = (r, arr) => arr[Math.floor(r() * arr.length)];
+function weighted(r, items, wf) {
+  const tot = items.reduce((s, x) => s + wf(x), 0); let u = r() * tot;
+  for (const x of items) { u -= wf(x); if (u <= 0) return x; } return items[items.length - 1];
+}
+
+/* =====================================================================
+   STORAGE (per-device; all wrapped)
+   ===================================================================== */
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('dailybaits.' + k); return v ? JSON.parse(v) : d; } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('dailybaits.' + k, JSON.stringify(v)); } catch {} },
+};
+let book = store.get('book', {});        // speciesId -> {n, best, bestPts}
+let history = store.get('history', {});  // day -> {pts, kg, venue}
+
+/* =====================================================================
+   WORLD
+   ===================================================================== */
+function makeWorld(seed, venue) {
+  const r = mulberry32(seed);
+  const ph = Array.from({ length: 10 }, () => r() * 6.283);
+  const fr = Array.from({ length: 5 }, () => .008 + r() * .016);
+  const amp = 6 + r() * 10;
+  const shoreY = x => H - 74 + Math.sin(x * .018 + ph[0]) * amp + Math.sin(x * .05 + ph[1]) * 4;
+  const topY = x => 22 + Math.sin(x * .02 + ph[2]) * 9;
+  const noise = (x, y) => (Math.sin(x * fr[0] + ph[3]) * Math.cos(y * fr[1] + ph[4])
+    + .6 * Math.sin((x + y) * fr[2] + ph[5]) + .4 * Math.cos((x - y) * fr[3] + ph[6])) / 2;
+  const depth = (x, y) => {
+    const s = shoreY(x), t = topY(x);
+    if (y >= s || y <= t || x < 0 || x > W) return -1;
+    let d = (s - y) / 440 * .95 + noise(x, y) * .3;
+    d = Math.min(d, (y - t) / 90 + .05);
+    return clamp(d, .03, 1);
+  };
+  const band = d => d < .34 ? 0 : d < .62 ? 1 : 2;
+  const randWater = (lo, hi) => {
+    for (let i = 0; i < 200; i++) {
+      const x = 16 + r() * (W - 32), y = 40 + r() * (H - 150), d = depth(x, y);
+      if (d >= lo && d <= hi) return { x, y };
+    }
+    return { x: W / 2, y: H / 2 };
+  };
+  const weeds = [];
+  for (let i = 0; i < 6; i++) {
+    const c = randWater(.04, .5), blob = [];
+    for (let j = 0; j < 6; j++) blob.push({ x: c.x + (r() - .5) * 46, y: c.y + (r() - .5) * 34, r: 9 + r() * 13 });
+    weeds.push(blob);
+  }
+  const rocks = [];
+  for (let i = 0; i < 5; i++) { const c = randWater(.3, 1); rocks.push({ x: c.x, y: c.y, r: 4 + r() * 6 }); }
+  const logs = [];
+  for (let i = 0; i < 3; i++) {
+    const c = randWater(.25, 1), a = r() * 3.14, L = 18 + r() * 18;
+    logs.push({ x1: c.x - Math.cos(a) * L, y1: c.y - Math.sin(a) * L, x2: c.x + Math.cos(a) * L, y2: c.y + Math.sin(a) * L });
+  }
+  const segDist = (px, py, l) => {
+    const dx = l.x2 - l.x1, dy = l.y2 - l.y1, t = clamp(((px - l.x1) * dx + (py - l.y1) * dy) / (dx * dx + dy * dy), 0, 1);
+    return Math.hypot(px - l.x1 - dx * t, py - l.y1 - dy * t);
+  };
+  const cover = (x, y) => {
+    for (const b of weeds) for (const c of b) if (Math.hypot(x - c.x, y - c.y) < c.r) return 'weed';
+    for (const k of rocks) if (Math.hypot(x - k.x, y - k.y) < k.r + 16) return 'structure';
+    for (const l of logs) if (segDist(x, y, l) < 15) return 'structure';
+    return 'open';
+  };
+  const wa = r() * 6.283, ws = r();
+  const wind = { x: Math.cos(wa) * ws, y: Math.sin(wa) * ws, a: wa, s: ws };
+
+  // ---- fish ----
+  const fish = [];
+  let legend = 0;
+  const N = 13;
+  for (let i = 0; i < N; i++) {
+    let tier = weighted(r, TIERS.map((t, k) => k), k => TIERS[k].w);
+    if (tier === 4 && legend++) tier = 0;
+    const sp = pick(r, venue.species.filter(s => s.tier === tier));
+    let best = null, bs = -1;
+    for (let k = 0; k < 70; k++) {
+      const x = 18 + r() * (W - 36), y = 44 + r() * (H - 160), d = depth(x, y);
+      if (d < 0) continue;
+      if (fish.some(f => Math.hypot(f.hx - x, f.hy - y) < 28)) continue;
+      const sc = (band(d) === sp.band ? 2 : 0) + (cover(x, y) === sp.cover ? 2.2 : 0) + r() * .5;
+      if (sc > bs) { bs = sc; best = { x, y }; }
+    }
+    if (!best) continue;
+    const ratio = Math.pow(r(), 1.7);                    // bigger = rarer
+    const body = r() < .6 ? sp.body : pick(r, BODIES);    // a clue, not a guarantee
+    fish.push({
+      i, sp, tier, ratio,
+      w: Math.round((sp.min + (sp.max - sp.min) * ratio) * 100) / 100,
+      body, scale: .75 + clamp(ratio * .5 + tier * .06 + (r() - .5) * .35, 0, .7),
+      hx: best.x, hy: best.y, rx: 14 + r() * 22, ry: 10 + r() * 16,
+      sp1: .18 + r() * .35, sp2: .13 + r() * .3, p1: r() * 6.283, p2: r() * 6.283,
+      x: best.x, y: best.y, ang: 0, caught: false, spooked: 0,
+    });
+  }
+  return { seed, venue, shoreY, topY, depth, band, cover, weeds, rocks, logs, wind, fish, segDist };
+}
+
+// Fish swim on a smooth loop around their home spot (Lissajous), staying in their habitat.
+function fishPos(f, t, out) {
+  const x = f.hx + Math.sin(t * f.sp1 + f.p1) * f.rx;
+  const y = f.hy + Math.sin(t * f.sp2 + f.p2) * f.ry;
+  const dx = Math.cos(t * f.sp1 + f.p1) * f.rx * f.sp1, dy = Math.cos(t * f.sp2 + f.p2) * f.ry * f.sp2;
+  out.x = x; out.y = y; out.ang = Math.atan2(dy, dx);
+  return out;
+}
+
+/* =====================================================================
+   GAME STATE
+   ===================================================================== */
+let G = null;
+function newGame(practice) {
+  const day = dayNumber();
+  const seed = practice ? (Math.random() * 2 ** 31) | 0 : hash(day, 0xBA17);
+  const venue = practice ? VENUES[(Math.random() * VENUES.length) | 0] : VENUES[((day % VENUES.length) + VENUES.length) % VENUES.length];
+  const world = makeWorld(seed, venue);
+  G = {
+    day, practice, seed, venue, world,
+    cast: 0, log: [], lure: 1, target: null, state: 'aim',
+    player: { x: W / 2, y: world.shoreY(W / 2) - 6 },
+    t: 0, st: 0, bob: null, hooked: null, reel: null, splash: [],
+  };
+  if (!practice) {
+    const saved = store.get('run.' + day, null);
+    if (saved && saved.seed === seed) {
+      G.log = saved.log; G.cast = saved.log.length;
+      for (const e of G.log) if (e.fi != null && world.fish[e.fi]) world.fish[e.fi].caught = true;
+    }
+  }
+  renderBase();
+  buildLures();
+  updateHud();
+  $('#sub').textContent = (practice ? 'Practice' : '#' + day) + ' · ' + venue.name;
+  if (G.cast >= CASTS) { G.state = 'done'; setHint('Done for today'); setTimeout(showResults, 300); }
+  else setHint('Tap the water to aim');
+  $('#castBtn').disabled = false; $('#castBtn').textContent = 'Cast';
+}
+function saveRun() {
+  if (G.practice) return;
+  store.set('run.' + G.day, { seed: G.seed, log: G.log });
+}
+const totals = () => G.log.reduce((a, e) => (a.pts += e.pts || 0, a.kg += e.w || 0, a), { pts: 0, kg: 0 });
+
+/* =====================================================================
+   DOM HELPERS
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const cv = $('#cv'), ctx = cv.getContext('2d');
+let scale = 1;
+function setHint(t) { $('#hint').textContent = t; }
+function haptic(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch {} try { window.parent.dailyBaitsApi?.haptic?.(ms); } catch {} }
+function updateHud() {
+  const t = totals();
+  $('#hCast').innerHTML = Math.min(G.cast + 1, CASTS) + '<small>/' + CASTS + '</small>';
+  $('#hBag').innerHTML = t.kg.toFixed(1) + '<small> kg</small>';
+  $('#hPts').textContent = t.pts;
+  const arrows = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'];
+  const w = G.world.wind;
+  $('#hWind').innerHTML = arrows[Math.round(((w.a % 6.283) + 6.283) % 6.283 / (6.283 / 8)) % 8] + ' ' + Math.round(w.s * 9) + '<small> m/s</small>';
+  const n = Object.keys(book).length;
+  $('#bookCount').textContent = n;
+}
+function buildLures() {
+  const el = $('#lures'); el.innerHTML = '';
+  LURES.forEach((l, i) => {
+    const b = document.createElement('button');
+    b.className = 'lure' + (i === G.lure ? ' on' : '');
+    b.innerHTML = `<b>${l.name}</b><small>${BANDS[l.band]}</small>`;
+    b.onclick = () => { if (G.state !== 'aim') return; G.lure = i; buildLures(); };
+    el.appendChild(b);
+  });
+}
+function resize() {
+  const stage = $('#stage');
+  const avail = window.innerHeight - 250;
+  const wpx = Math.min($('#app').clientWidth - 32, Math.max(240, avail * (W / H)));
+  stage.style.width = wpx + 'px'; stage.style.height = (wpx * H / W) + 'px';
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  cv.width = Math.round(wpx * dpr); cv.height = Math.round(wpx * H / W * dpr);
+  scale = cv.width / W;
+}
+
+/* =====================================================================
+   RENDERING
+   ===================================================================== */
+let base = null;
+const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
+function renderBase() {
+  const w = G.world, p = G.venue.pal, SS = 2;
+  base = document.createElement('canvas'); base.width = W * SS; base.height = H * SS;
+  const o = base.getContext('2d'), img = o.createImageData(base.width, base.height), D = img.data;
+  const cols = [hex(p.w0), hex(p.w1), hex(p.w2)], land = hex(p.land), bank = hex(p.bank);
+  const TH = [.34, .62];
+  for (let py = 0; py < base.height; py++) for (let px = 0; px < base.width; px++) {
+    const x = px / SS, y = py / SS, d = w.depth(x, y), k = (py * base.width + px) * 4;
+    let c;
+    if (d < 0) {
+      const nearS = Math.abs(y - w.shoreY(x)) < 5 || Math.abs(y - w.topY(x)) < 5;
+      c = nearS ? bank : land;
+    } else {
+      c = cols[w.band(d)];
+      // contrast ladder: a thin darker contour on each band edge
+      const edge = Math.min(Math.abs(d - TH[0]), Math.abs(d - TH[1]));
+      if (edge < .007) c = c.map(v => v * .9);
+      else c = c.map(v => v * (1.02 - (d % .34) * .08));
+    }
+    D[k] = c[0]; D[k + 1] = c[1]; D[k + 2] = c[2]; D[k + 3] = 255;
+  }
+  o.putImageData(img, 0, 0);
+  o.scale(SS, SS);
+  // weed beds
+  const wr = mulberry32(w.seed ^ 99);
+  for (const blob of w.weeds) {
+    o.fillStyle = p.weed; o.globalAlpha = .28;
+    for (const c of blob) { o.beginPath(); o.arc(c.x, c.y, c.r, 0, 6.283); o.fill(); }
+    o.globalAlpha = .55;
+    for (const c of blob) for (let j = 0; j < 7; j++) {
+      const a = wr() * 6.283, rr = wr() * c.r * .85;
+      o.beginPath(); o.arc(c.x + Math.cos(a) * rr, c.y + Math.sin(a) * rr, .9 + wr() * 1.1, 0, 6.283); o.fill();
+    }
+  }
+  o.globalAlpha = 1;
+  for (const k of w.rocks) {
+    o.fillStyle = p.rock; o.beginPath(); o.ellipse(k.x, k.y, k.r, k.r * .8, .4, 0, 6.283); o.fill();
+    o.fillStyle = 'rgba(255,255,255,.35)'; o.beginPath(); o.ellipse(k.x - k.r * .25, k.y - k.r * .25, k.r * .4, k.r * .3, .4, 0, 6.283); o.fill();
+  }
+  o.lineCap = 'round';
+  for (const l of w.logs) {
+    o.strokeStyle = p.log; o.lineWidth = 4.5; o.globalAlpha = .8;
+    o.beginPath(); o.moveTo(l.x1, l.y1); o.lineTo(l.x2, l.y2); o.stroke();
+  }
+  o.globalAlpha = 1;
+  // quiet shoreline: a few reed tufts only
+  o.strokeStyle = p.weed; o.lineWidth = 1; o.globalAlpha = .6;
+  for (let i = 0; i < 26; i++) {
+    const x = wr() * W, y = w.shoreY(x) + 2;
+    for (let j = -1; j <= 1; j++) { o.beginPath(); o.moveTo(x + j * 1.5, y + 5); o.lineTo(x + j * 2.5, y - 2 - wr() * 3); o.stroke(); }
+  }
+  o.globalAlpha = 1;
+}
+
+// Shadow silhouettes, in fish-local coords (nose at +x), unit length ~ 1.
+function shadowPath(c, body, len) {
+  const L = len, T = { slim: .2, round: .38, small: .3, long: .13, broad: .34 }[body] * L;
+  c.beginPath();
+  c.ellipse(0, 0, L * .5, T * .5, 0, 0, 6.283);
+  // tail
+  c.moveTo(-L * .42, 0);
+  c.lineTo(-L * .7, -T * .55); c.lineTo(-L * .62, 0); c.lineTo(-L * .7, T * .55); c.closePath();
+}
+function drawShadow(c, x, y, ang, body, len, wig, alpha) {
+  c.save(); c.translate(x, y); c.rotate(ang + Math.sin(wig) * .08);
+  c.globalAlpha = alpha; c.fillStyle = '#1C3340';
+  shadowPath(c, body, len); c.fill();
+  c.restore(); c.globalAlpha = 1;
+}
+
+const tmp = { x: 0, y: 0, ang: 0 };
+function draw() {
+  const w = G.world, t = G.t;
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  ctx.drawImage(base, 0, 0, W, H);
+
+  // range rings
+  ctx.save(); ctx.setLineDash([2, 6]); ctx.strokeStyle = 'rgba(35,52,42,.18)'; ctx.lineWidth = 1;
+  ctx.font = '8px "DM Mono", monospace'; ctx.fillStyle = 'rgba(35,52,42,.35)';
+  for (const R of [110, 220, 330]) {
+    ctx.beginPath(); ctx.arc(G.player.x, G.player.y, R, Math.PI * 1.05, Math.PI * 1.95); ctx.stroke();
+    ctx.fillText(Math.round(R / 11) + 'm', G.player.x + 3, G.player.y - R - 3);
+  }
+  ctx.restore();
+
+  // fish shadows
+  for (const f of w.fish) {
+    if (f.caught) continue;
+    fishPos(f, t, tmp); f.x = tmp.x; f.y = tmp.y; f.ang = tmp.ang;
+    if (G.hooked === f && G.bob) { f.x = G.bob.x; f.y = G.bob.y; }
+    const deep = w.band(Math.max(0, w.depth(f.x, f.y)));
+    const alpha = [.55, .42, .32][deep] * (f.spooked > 0 ? .5 : 1);
+    drawShadow(ctx, f.x, f.y, f.ang, f.body, 20 * f.scale, t * 6 + f.p1, alpha);
+  }
+
+  // caught markers
+  ctx.font = '7.5px "DM Mono", monospace'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  G.log.forEach((e, i) => {
+    if (e.x == null) return;
+    ctx.fillStyle = e.tier != null ? TIERS[e.tier].c : 'rgba(35,52,42,.35)';
+    ctx.beginPath(); ctx.arc(e.x, e.y, 5, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.fillText(i + 1, e.x, e.y + .5);
+  });
+
+  // splash rings
+  for (const s of G.splash) {
+    const a = (t - s.t) / .9; if (a > 1) continue;
+    ctx.strokeStyle = `rgba(255,255,255,${.8 * (1 - a)})`; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.arc(s.x, s.y, 3 + a * 16, 0, 6.283); ctx.stroke();
+  }
+
+  // aim
+  if (G.target && (G.state === 'aim' || G.state === 'meter')) {
+    const { x, y } = G.target;
+    ctx.strokeStyle = 'rgba(35,52,42,.35)'; ctx.setLineDash([3, 4]);
+    ctx.beginPath(); ctx.moveTo(G.player.x, G.player.y); ctx.lineTo(x, y); ctx.stroke(); ctx.setLineDash([]);
+    ctx.strokeStyle = '#23342A'; ctx.lineWidth = 1.4;
+    ctx.beginPath(); ctx.arc(x, y, 9, 0, 6.283); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x - 14, y); ctx.lineTo(x - 5, y); ctx.moveTo(x + 5, y); ctx.lineTo(x + 14, y);
+    ctx.moveTo(x, y - 14); ctx.lineTo(x, y - 5); ctx.moveTo(x, y + 5); ctx.lineTo(x, y + 14); ctx.stroke();
+  }
+
+  // line + bobber
+  if (G.bob) {
+    let bx = G.bob.x, by = G.bob.y, lift = 0;
+    if (G.state === 'flight') {
+      const k = clamp(G.st / G.bob.dur, 0, 1);
+      bx = G.player.x + (G.bob.x - G.player.x) * k; by = G.player.y + (G.bob.y - G.player.y) * k; lift = Math.sin(k * Math.PI) * 40;
+    }
+    if (G.state === 'reel' && G.reel) {
+      const k = G.reel.prog; bx = G.bob.x + (G.player.x - G.bob.x) * k * .8; by = G.bob.y + (G.player.y - G.bob.y) * k * .8;
+      bx += Math.sin(t * 9) * 3 * G.reel.tension; by += Math.cos(t * 7) * 2;
+      if (G.hooked) { drawShadow(ctx, bx, by + 4, Math.atan2(by - G.player.y, bx - G.player.x), G.hooked.body, 20 * G.hooked.scale, t * 14, .45); }
+    }
+    ctx.strokeStyle = 'rgba(35,52,42,.55)'; ctx.lineWidth = .8;
+    ctx.beginPath(); ctx.moveTo(G.player.x, G.player.y - 8);
+    ctx.quadraticCurveTo((G.player.x + bx) / 2, (G.player.y + by) / 2 - 20 - lift, bx, by - lift); ctx.stroke();
+    let dip = 0;
+    if (G.state === 'wait') dip = Math.sin(t * 5) * .6 + (G.hooked && G.st > G.biteAt - .6 ? Math.sin(t * 30) * 1.2 : 0);
+    if (G.state === 'bite') dip = 2.5;
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(bx, by - lift + dip, 3.6, 0, 6.283); ctx.fill();
+    ctx.fillStyle = '#C0492F'; ctx.beginPath(); ctx.arc(bx, by - lift + dip, 3.6, Math.PI, 0); ctx.fill();
+  }
+
+  // angler
+  ctx.fillStyle = '#23342A';
+  ctx.beginPath(); ctx.arc(G.player.x, G.player.y, 5, 0, 6.283); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(G.player.x, G.player.y, 2, 0, 6.283); ctx.fill();
+}
+
+/* =====================================================================
+   INPUT
+   ===================================================================== */
+function toWorld(e) {
+  const r = cv.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H };
+}
+function probe(p, e) {
+  const el = $('#probe'), w = G.world, d = w.depth(p.x, p.y);
+  if (d < 0) { el.classList.remove('on'); return; }
+  el.textContent = `${BANDS[w.band(d)]} · ${(d * 12).toFixed(1)} m · ${w.cover(p.x, p.y)}`;
+  const r = cv.getBoundingClientRect(), sr = $('#stage').getBoundingClientRect();
+  el.style.left = clamp(e.clientX - sr.left, 60, sr.width - 60) + 'px'; el.style.top = (e.clientY - sr.top) + 'px';
+  el.classList.add('on');
+}
+cv.addEventListener('pointermove', e => { if (G.state === 'aim') probe(toWorld(e), e); });
+cv.addEventListener('pointerleave', () => $('#probe').classList.remove('on'));
+cv.addEventListener('pointerdown', e => {
+  if (G.state === 'aim') {
+    const p = toWorld(e);
+    if (G.world.depth(p.x, p.y) < 0) return;
+    const dx = p.x - G.player.x, dy = p.y - G.player.y, D = Math.hypot(dx, dy);
+    if (D > 330) { p.x = G.player.x + dx / D * 330; p.y = G.player.y + dy / D * 330; }
+    G.target = p; probe(p, e);
+    setHint('Pick a lure, then cast');
+  } else action();
+});
+$('#castBtn').addEventListener('click', () => action());
+window.addEventListener('keydown', e => {
+  if (e.code === 'Space') { e.preventDefault(); if (G.state === 'reel') G.reel.hold = true; else if (!e.repeat) action(); }
+});
+window.addEventListener('keyup', e => { if (e.code === 'Space' && G.state === 'reel') G.reel.hold = false; });
+document.addEventListener('pointerdown', e => {
+  if (G.state === 'reel' && !e.target.closest('.sheet')) G.reel.hold = true;
+});
+document.addEventListener('pointerup', () => { if (G.state === 'reel') G.reel.hold = false; });
+document.addEventListener('pointercancel', () => { if (G.state === 'reel') G.reel.hold = false; });
+
+// One button / tap does the next thing for each state.
+function action() {
+  if (G.state === 'aim') {
+    if (!G.target) { setHint('Tap the water first'); return; }
+    G.state = 'meter'; G.st = 0; $('#meter').classList.add('on'); $('#probe').classList.remove('on');
+    $('#castBtn').textContent = 'Release'; setHint('Stop the needle in the middle');
+  } else if (G.state === 'meter') {
+    release();
+  } else if (G.state === 'wait') {
+    // struck before the bite
+    if (G.hooked) { G.hooked.spooked = 1; endCast({ res: 'miss', why: 'Too early. You spooked it.' }); }
+    else endCast({ res: 'miss', why: 'Nothing there. Reeled in empty.' });
+  } else if (G.state === 'bite') {
+    startReel();
+  }
+}
+
+/* =====================================================================
+   CAST / BITE / REEL
+   ===================================================================== */
+function meterPos() { return Math.sin(G.st * 3.4); }
+function release() {
+  const p = meterPos();
+  $('#meter').classList.remove('on');
+  const rr = mulberry32(hash(G.seed, G.cast, 0xCA57));
+  const a = rr() * 6.283, err = p * p * 48;
+  const w = G.world.wind;
+  const L = { x: G.target.x + Math.cos(a) * err + w.x * 16, y: G.target.y + Math.sin(a) * err + w.y * 16 };
+  const acc = Math.abs(p) < .15 ? 'Perfect cast' : Math.abs(p) < .4 ? 'Good cast' : 'Wide cast';
+  G.bob = { x: L.x, y: L.y, dur: .55 + Math.hypot(L.x - G.player.x, L.y - G.player.y) / 900 };
+  G.state = 'flight'; G.st = 0; G.acc = acc;
+  $('#castBtn').textContent = 'Strike'; setHint(acc);
+  haptic(8);
+}
+function landed() {
+  const w = G.world, L = G.bob, d = w.depth(L.x, L.y);
+  G.splash.push({ x: L.x, y: L.y, t: G.t });
+  const rb = mulberry32(hash(G.seed, G.cast, L.x | 0, L.y | 0));
+  if (d < 0) return endCast({ res: 'miss', why: 'Landed on the bank.' });
+  if (w.cover(L.x, L.y) === 'structure' && rb() < .15) return endCast({ res: 'miss', why: 'Snagged on the bottom. Line lost.' });
+  // Who is close, and do they want this lure here?
+  const lure = LURES[G.lure], cands = [];
+  for (const f of w.fish) {
+    if (f.caught) continue;
+    const dist = Math.hypot(f.x - L.x, f.y - L.y);
+    if (dist > 64) continue;
+    const lureFit = lure.id === f.sp.lure ? 1 : .4;
+    const depthFit = w.band(d) === f.sp.band ? 1 : .6;
+    const p = .86 * lureFit * depthFit * (1 - dist / 64 * .6) * (f.spooked ? .35 : 1);
+    cands.push({ f, p, dist });
+  }
+  cands.sort((a, b) => a.dist - b.dist);
+  G.hooked = null;
+  for (const c of cands) if (rb() < c.p) { G.hooked = c.f; break; }
+  G.biteAt = G.hooked ? 1 + rb() * 2.2 : 2.6;
+  G.state = 'wait'; G.st = 0;
+  setHint(G.hooked ? 'Wait for it…' : 'Wait for it…');
+}
+function startReel() {
+  const f = G.hooked;
+  const diff = clamp(f.tier / 4 * .65 + f.ratio * .35, 0, 1);
+  G.reel = { f, diff, tension: .25, prog: .3, hold: false, surge: 0, nextSurge: .6, ph: Math.random() * 6, zw: .36 - diff * .2 };
+  G.state = 'reel'; G.st = 0;
+  $('#banner').classList.remove('on');
+  $('#reel').classList.add('on');
+  $('#rPull').textContent = diff < .2 ? 'Light pull' : diff < .45 ? 'Steady pull' : diff < .7 ? 'Strong pull' : 'Monster on!';
+  $('#castBtn').textContent = 'Hold';
+  setHint('Keep the needle in the green zone');
+  haptic([20, 30, 20]);
+}
+function tickReel(dt) {
+  const R = G.reel;
+  const zc = .5 + .22 * Math.sin(G.st * (.6 + R.diff * 1.4) + R.ph);
+  const lo = zc - R.zw / 2, hi = zc + R.zw / 2;
+  R.nextSurge -= dt;
+  if (R.nextSurge <= 0) { R.surge = (.3 + R.diff * 1.1) * (.5 + Math.random()); R.nextSurge = .5 + Math.random() * (1.4 - R.diff * .7); haptic(6); }
+  R.surge *= Math.pow(.25, dt);
+  R.tension += (R.hold ? 1.05 : -.85) * dt + R.surge * dt * 1.6;
+  R.tension = Math.max(0, R.tension);
+  if (R.tension >= 1) return endReel('snap');
+  if (R.tension >= lo && R.tension <= hi) R.prog += dt * (.24 - R.diff * .1);
+  else if (R.tension < lo) R.prog -= dt * .13;
+  else R.prog += dt * .03;
+  if (R.prog >= 1) return endReel('land');
+  if (R.prog <= 0) return endReel('escape');
+  $('#rZone').style.left = (lo * 100) + '%'; $('#rZone').style.width = (R.zw * 100) + '%';
+  $('#rNeedle').style.left = (clamp(R.tension, 0, 1) * 100) + '%';
+  $('#rProg').style.width = (R.prog * 100) + '%';
+}
+function endReel(how) {
+  $('#reel').classList.remove('on');
+  const f = G.reel.f; G.reel = null;
+  if (how === 'snap') return endCast({ res: 'miss', why: 'Snap! The line broke.' });
+  if (how === 'escape') { f.spooked = 1; return endCast({ res: 'miss', why: 'It shook free and swam off.' }); }
+  f.caught = true;
+  const trophy = f.ratio > .85;
+  const pts = Math.round((10 + 90 * f.ratio) * TIERS[f.tier].m * (trophy ? 1.25 : 1));
+  const isNew = !book[f.sp.id];
+  const b = book[f.sp.id] || { n: 0, best: 0, bestPts: 0 };
+  b.n++; b.best = Math.max(b.best, f.w); b.bestPts = Math.max(b.bestPts, pts);
+  book[f.sp.id] = b; store.set('book', book);
+  endCast({ res: 'catch', sp: f.sp.id, tier: f.tier, w: f.w, pts, trophy, fi: f.i, x: G.bob.x, y: G.bob.y, isNew, body: f.body });
+  haptic([30, 40, 60]);
+}
+function endCast(e) {
+  $('#banner').classList.remove('on'); $('#meter').classList.remove('on'); $('#reel').classList.remove('on');
+  G.log.push(e); G.cast++; saveRun();
+  G.state = 'toast'; G.st = 0; G.hooked = null;
+  showToast(e);
+  updateHud();
+  $("#castBtn").textContent = "Cast";
+  $('#castBtn').disabled = true;
+}
+function nextCast() {
+  hideToast(); G.bob = null; G.target = null;
+  $('#castBtn').disabled = false; $('#castBtn').textContent = 'Cast';
+  if (G.cast >= CASTS) { G.state = 'done'; finishDay(); return; }
+  G.state = 'aim'; setHint('Tap the water to aim');
+}
+
+function showToast(e) {
+  const el = $('#toast');
+  if (e.res === 'catch') {
+    const sp = ALL_SPECIES.find(s => s.id === e.sp), T = TIERS[e.tier];
+    el.innerHTML = `<canvas class="sw" width="88" height="56"></canvas><div class="tx"><b>${sp.name}${e.isNew ? '<span class="newTag">NEW</span>' : ''}</b>
+      <small style="color:${T.c}">${T.k}${e.trophy ? ' · Trophy' : ''} · ${e.w.toFixed(2)} kg</small></div><div class="pt">+${e.pts}</div>`;
+    drawSwatch(el.querySelector('canvas'), sp.body, T.c);
+  } else {
+    el.innerHTML = `<div class="tx"><b>${e.why}</b><small>Cast ${G.cast} of ${CASTS}</small></div>`;
+  }
+  el.classList.add('on');
+}
+function hideToast() { $('#toast').classList.remove('on'); }
+function drawSwatch(c, body, col) {
+  const x = c.getContext('2d'); x.clearRect(0, 0, c.width, c.height);
+  x.save(); x.translate(c.width * .55, c.height / 2); x.fillStyle = col; shadowPath(x, body, c.width * .62); x.fill(); x.restore();
+}
+
+/* =====================================================================
+   LOOP
+   ===================================================================== */
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(.05, (now - last) / 1000); last = now;
+  G.t += dt; G.st += dt;
+  for (const f of G.world.fish) if (f.spooked > 0) f.spooked = Math.max(0, f.spooked - dt * .08);
+  if (G.state === 'meter') $('#mNeedle').style.left = ((meterPos() + 1) * 50) + '%';
+  if (G.state === 'flight' && G.st >= G.bob.dur) landed();
+  if (G.state === 'wait' && G.st >= G.biteAt) {
+    if (G.hooked) {
+      G.state = 'bite'; G.st = 0; G.window = .8 - G.hooked.tier * .09;
+      $('#banner').classList.add('on'); setHint('Strike!'); haptic(25);
+    } else endCast({ res: 'miss', why: 'No bites here.' });
+  }
+  if (G.state === 'bite' && G.st > G.window) { $('#banner').classList.remove('on'); endCast({ res: 'miss', why: 'Too slow. It spat the hook.' }); }
+  if (G.state === 'reel') tickReel(dt);
+  if (G.state === 'toast' && G.st > 2.1) nextCast();
+  draw();
+  requestAnimationFrame(frame);
+}
+
+/* =====================================================================
+   SHEETS: results, board, handbook, how to
+   ===================================================================== */
+function openSheet(html) { $('#panel').innerHTML = html; $('#sheet').classList.add('on'); }
+function closeSheet() { $('#sheet').classList.remove('on'); }
+$('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet' || e.target.closest('.close')) closeSheet(); });
+
+function finishDay() {
+  const t = totals();
+  if (!G.practice) {
+    history[G.day] = { pts: t.pts, kg: Math.round(t.kg * 100) / 100, venue: G.venue.id };
+    store.set('history', history);
+    try { window.parent.dailyBaitsApi?.submitScore?.({ day: G.day, pts: t.pts, kg: t.kg, log: G.log }); } catch {}
+  }
+  setHint(G.practice ? 'Practice over' : 'Done for today. New water tomorrow.');
+  $('#castBtn').disabled = true;
+  showResults();
+}
+function shareText() {
+  const t = totals();
+  const row = G.log.map(e => e.res === 'catch' ? TIERS[e.tier].sq : '▫️').join('');
+  return `Daily Baits #${G.day} · ${G.venue.name}\n🎣 ${t.pts} pts · ${t.kg.toFixed(1)} kg\n${row}`;
+}
+function masterBaiter() {
+  let best = null; for (const d in history) if (!best || history[d].pts > history[best].pts) best = d; return best;
+}
+function showResults() {
+  const t = totals();
+  const rows = G.log.map((e, i) => {
+    if (e.res !== 'catch') return `<div class="row"><span class="n">${i + 1}</span><span class="dot" style="background:var(--line)"></span><span class="nm" style="color:var(--dim)">${e.why}</span></div>`;
+    const sp = ALL_SPECIES.find(s => s.id === e.sp);
+    return `<div class="row"><span class="n">${i + 1}</span><span class="dot" style="background:${TIERS[e.tier].c}"></span>
+      <span class="nm">${sp.name}<small>${e.w.toFixed(2)} kg${e.trophy ? ' · TROPHY' : ''}</small></span><span class="v">+${e.pts}</span></div>`;
+  }).join('');
+  openSheet(`<div class="panelHead"><h2>${G.practice ? 'Practice' : 'Today’s bag'}</h2><button class="close">✕</button></div>
+    <div class="bigScore"><div><span>Points</span><b>${t.pts}</b></div><div><span>Weight</span><b>${t.kg.toFixed(1)}<small style="font-size:13px"> kg</small></b></div>
+    <div><span>Caught</span><b>${G.log.filter(e => e.res === 'catch').length}<small style="font-size:13px">/${CASTS}</small></b></div></div>
+    <div class="kicker">Casts</div><div class="rows">${rows}</div>
+    <div class="btnRow">${G.practice ? '' : '<button class="p" id="shareBtn">Share</button>'}<button class="s" id="practiceBtn">Practice round</button></div>`);
+  const sb = $('#shareBtn');
+  if (sb) sb.onclick = async () => {
+    const txt = shareText();
+    try { if (navigator.share) await navigator.share({ text: txt }); else { await navigator.clipboard.writeText(txt); sb.textContent = 'Copied'; } } catch {}
+  };
+  $('#practiceBtn').onclick = () => { closeSheet(); newGame(true); };
+}
+function showBoard() {
+  const days = Object.keys(history).sort((a, b) => history[b].pts - history[a].pts).slice(0, 10);
+  const mb = masterBaiter();
+  const rows = days.length ? days.map((d, i) => `<div class="row${+d === G.day ? ' me' : ''}"><span class="n">${i + 1}</span>
+      <span class="nm">Day #${d}${d === mb ? '<span class="mb">Master Baiter</span>' : ''}<small>${(VENUES.find(v => v.id === history[d].venue) || {}).name || ''}</small></span>
+      <span class="v">${history[d].pts}</span></div>`).join('')
+    : `<div class="row"><span class="nm" style="color:var(--dim)">Finish today’s water to post a score.</span></div>`;
+  openSheet(`<div class="panelHead"><h2>Leaderboard</h2><button class="close">✕</button></div>
+    <p class="note" style="margin-top:0">The top score each day earns the <span class="mb" style="margin:0">Master Baiter</span> tag. Bigger and rarer fish score more.</p>
+    <div class="kicker">Your best days</div><div class="rows">${rows}</div>
+    <p class="note">Global and friends leaderboards arrive once accounts are set up. For now this board only shows scores from this device.</p>`);
+}
+let bookVenue = null;
+function showBook() {
+  bookVenue = bookVenue || G.venue.id;
+  const found = ALL_SPECIES.filter(s => book[s.id]).length;
+  const tabs = VENUES.map(v => `<button class="tab${v.id === bookVenue ? ' on' : ''}" data-v="${v.id}">${v.name} ${v.species.filter(s => book[s.id]).length}/${v.species.length}</button>`).join('');
+  const cards = VENUES.find(v => v.id === bookVenue).species.map(s => {
+    const b = book[s.id], T = TIERS[s.tier];
+    if (!b) return `<div class="card unk"><canvas width="160" height="46" data-body="${s.body}" data-c="#C9D3CD"></canvas><b>???</b>
+      <span class="chip" style="background:${T.c}">${T.k}</span><p>${s.hint}</p></div>`;
+    return `<div class="card"><canvas width="160" height="46" data-body="${s.body}" data-c="${T.c}"></canvas><b>${s.name}</b>
+      <span class="chip" style="background:${T.c}">${T.k}</span><p>${s.desc}</p>
+      <div class="hab">${BANDS[s.band]} · ${s.cover} · ${LURES.find(l => l.id === s.lure).name}</div>
+      <div class="rec">Best ${b.best.toFixed(2)} kg · Caught ${b.n}</div></div>`;
+  }).join('');
+  openSheet(`<div class="panelHead"><h2>Handbook</h2><button class="close">✕</button></div>
+    <p class="note" style="margin-top:0">${found} of ${ALL_SPECIES.length} species discovered. Catching a species once reveals its depth, cover and favourite lure.</p>
+    <div class="tabs">${tabs}</div><div class="book">${cards}</div>`);
+  document.querySelectorAll('.tab').forEach(b => b.onclick = () => { bookVenue = b.dataset.v; showBook(); });
+  document.querySelectorAll('.card canvas').forEach(c => drawSwatch(c, c.dataset.body, c.dataset.c));
+}
+function showHow() {
+  openSheet(`<div class="panelHead"><h2>How to fish</h2><button class="close">✕</button></div>
+    <div class="howto"><ol>
+      <li><b>Read the water.</b> Lighter water is shallow and darker is deep. Hover or tap to check depth and cover (weed, rocks and logs, or open water).</li>
+      <li><b>Watch the shadows.</b> Every shadow is a fish, but a shape only hints at what it is. Bigger shadows tend to be bigger fish.</li>
+      <li><b>Pick a lure.</b> Popper works shallow, Spinner mid water and Jig deep. Each species has a favourite.</li>
+      <li><b>Cast.</b> Tap the water, press Cast, then stop the needle in the middle. Wind pushes the cast.</li>
+      <li><b>Strike.</b> When the bobber goes under, tap. Rare fish give you less time.</li>
+      <li><b>Reel.</b> Hold to reel and let go to give line. Keep the needle in the green zone. Too much tension and the line snaps; too little and the fish gets away.</li>
+    </ol>
+    <p class="note">10 casts a day. Everyone gets the same water. Points scale with size and rarity, from Common ×1 to Legendary ×9.</p></div>`);
+}
+$('#bookBtn').onclick = showBook;
+$('#boardBtn').onclick = showBoard;
+$('#howBtn').onclick = showHow;
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+window.addEventListener('resize', resize);
+resize();
+newGame(false);
+if (!store.get('seenHow', false)) { store.set('seenHow', true); showHow(); }
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
