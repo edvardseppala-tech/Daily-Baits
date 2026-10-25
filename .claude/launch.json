@@ -1,1 +1,1 @@
-{"version":"0.0.1","configurations":[{"name":"daily-baits","runtimeExecutable":"python3","runtimeArgs":["-m","http.server","5180","-d","public"],"port":5180}]}
+{"version":"0.0.1","configurations":[{"name":"daily-baits","runtimeExecutable":"npm","runtimeArgs":["run","dev"],"port":8080}]}
