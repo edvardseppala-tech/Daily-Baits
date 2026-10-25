@@ -1,60 +1,53 @@
-# Prompt for Lovable: sign in + leaderboard
+# Prompts for Lovable: sign in + leaderboard
 
-Paste everything below the line into Lovable.
+Send these one at a time. Wait until each one works before sending the next.
 
----
+## Prompt 1: Sign in
 
-Add accounts and a daily leaderboard to Daily Baits. Use Lovable Cloud (Supabase).
+```text
+Add sign in to Daily Baits using Lovable Cloud.
 
-**Ground rules**
-- The game is `public/dailybaits.html`, shown full screen by `src/GameFrame.tsx`. Do not edit, rewrite or
-  restyle the game file. Everything you build lives in the React shell.
-- Match the game's look: background `#F3F6F2`, cards `#FFFFFF` with border `#DCE4DD` and 14–16px radius,
-  ink `#23342A`, muted text `#6E7D74`, accent green `#1F7A4C`, gold `#C98A1B` for the Master Baiter tag.
-  Fonts: Archivo for text, DM Mono uppercase with letter-spacing for small labels. Keep it calm and clean.
-- No payments or monetisation.
+Important: the game is the file public/dailybaits.html and it is shown full screen by src/GameFrame.tsx. Never change the game file. Build everything around it.
 
-**1. Sign in (`/signin`)**
-- Email + password sign-up and sign-in, a "forgot password" flow, and Continue with Google.
-- On first sign-in, ask for a public display name (3–20 characters, unique, no offensive words).
-  Store it in a `profiles` table (`id` = auth user id, `display_name`, `created_at`).
-- A simple `/profile` page: change display name, sign out, delete account.
-- After sign-in or sign-out, go back to `/` (the game).
+- Make a /signin page with email + password, "Forgot password" and "Continue with Google".
+- The first time someone signs in, ask them to pick a public name (3–20 characters, must be unique). Save it in a profiles table.
+- Make a /profile page where they can change their name, sign out or delete their account.
+- After signing in or out, send them back to / (the game).
+- Style: background #F3F6F2, white cards with a light border #DCE4DD and rounded corners, dark green text #23342A, grey text #6E7D74, green buttons #1F7A4C. Font Archivo, with small uppercase labels in DM Mono. Calm and clean, no payments.
+```
 
-**2. The bridge the game already calls**
-Extend the `window.dailyBaitsApi` object in `GameFrame.tsx` (keep `haptic` as it is):
-- `getPlayer()` → returns `{ name }` for the signed-in user, or `null` for a guest. It must be synchronous,
-  so keep the current profile in memory.
-- `openSignIn()` → navigate to `/signin`.
-- `openProfile()` → navigate to `/profile`.
-- `openLeaderboard()` → navigate to `/leaderboard`.
-- `submitScore(score)` → called once when a player finishes the daily round. The argument is
-  `{ day, venue, seed, pts, kg, casts, log }`. If the user is signed in, save it (see 3). If not, keep it in
-  `sessionStorage` and save it right after they sign in, if `day` is still today.
-- Whenever the auth state changes, call `iframe.contentWindow.dailyBaits?.refresh()` so the game's home
-  screen shows the player's name instead of "Sign in".
+## Prompt 2: Connect sign in to the game
 
-**3. Saving scores safely**
-- Table `daily_scores`: `id`, `user_id`, `day` (int), `venue` (text), `pts` (int), `kg` (numeric),
-  `casts` (int), `log` (jsonb), `created_at`. Unique on (`user_id`, `day`): one score per player per day.
-- Turn on row level security. Anyone may read the public leaderboard view; nobody may insert or update
-  rows directly from the client.
-- Save scores only through an edge function / server function `submit-score` that:
-  - checks the user is signed in,
-  - checks `day` equals today's game day, computed the same way as the game:
-    `floor((UTC midnight of today's local date − Date.UTC(2026, 9, 25)) / 86400000) + 1`
-    (allow ±1 day for time zones),
-  - checks `casts === 10`, `0 ≤ pts ≤ 12000` and `0 ≤ kg ≤ 2000`,
-  - inserts the row and rejects duplicates for the same day.
-- A `leaderboard` view (or RPC) that joins `display_name` and never exposes emails or user ids.
+```text
+The game talks to the website through window.dailyBaitsApi in src/GameFrame.tsx. Keep haptic as it is and add these:
 
-**4. Leaderboard page (`/leaderboard`)**
-- Tabs: **Today**, **This week** (sum of the last 7 days), **All time** (best single day).
-- Each row: rank, display name, points, kg. Highlight the signed-in player's own row and always show
-  their rank, even if they're outside the top 50.
-- The #1 player on **Today** gets a gold pill tag that says **Master Baiter**. Show past Master Baiters as
-  a small "Hall of fame" list (date, name, points) below the board.
-- Ties: higher kg wins, then the earlier submission.
-- Guests see the board and a "Sign in to post your score" button.
-- A "Back to the water" button that returns to `/`.
-- Keep the queries bounded (top 50 + the player's own rank); never download whole score histories.
+- getPlayer(): return { name } for the signed-in player, or null for a guest. It must return straight away, so keep the player's name in memory.
+- openSignIn(): go to /signin
+- openProfile(): go to /profile
+- openLeaderboard(): go to /leaderboard
+- When someone signs in or out, call iframe.contentWindow.dailyBaits?.refresh() so the game shows their name.
+
+The game then shows a "Sign in" button at the top, which turns into the player's name once they are signed in.
+```
+
+## Prompt 3: Leaderboard
+
+```text
+Add a daily leaderboard.
+
+Saving scores:
+- When a player finishes today's game, the game calls window.dailyBaitsApi.submitScore({ day, venue, seed, pts, kg, casts, log }).
+- If they are signed in, save it. If they are a guest, keep it and save it right after they sign in (only if it is still the same day).
+- Save it in a daily_scores table with one score per player per day.
+- Scores must only be saved through a server function, never written straight from the browser. The function checks: the player is signed in; day is today's game day, which is floor((UTC midnight of today − Date.UTC(2026, 9, 25)) / 86400000) + 1, allowing one day either side for time zones; casts is 10; pts is between 0 and 12000; kg is between 0 and 2000.
+- Turn on row level security so nobody can write scores directly, and never show emails.
+
+The /leaderboard page:
+- Three tabs: Today, This week (points added up over the last 7 days), All time (best single day).
+- Each row shows rank, name, points and kg. Highlight my own row, and always show my rank even if I'm not in the top 50.
+- Today's number 1 gets a gold tag (#C98A1B) that says "Master Baiter". Below the board, a small "Hall of fame" lists past Master Baiters with the date, name and points.
+- If points are tied, the higher kg wins, then whoever posted first.
+- Guests can see the board, plus a "Sign in to post your score" button.
+- A "Back to the water" button returns to the game.
+- Only load the top 50 plus my own rank, never everyone's full history.
+```
