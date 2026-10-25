@@ -16,8 +16,8 @@ match exactly. Prices are the same as Daily Holes and include VAT (set *Include 
 | Custom bobber colour | One-time | €1.99 | `custom_bobber` |
 | Custom line colour | One-time | €1.99 | `custom_line` |
 | Custom colours: bobber + line | One-time | €2.99 | `custom_pair` |
-| Daily Baits Club | Recurring, monthly | €4.99 | `club_monthly` |
-| Daily Baits Club | Recurring, yearly | €39.00 | `club_yearly` |
+| Daily Baits Pro | Recurring, monthly | €4.99 | `club_monthly` |
+| Daily Baits Pro | Recurring, yearly | €39.00 | `club_yearly` |
 
 Optional: add currency options on each price (USD, GBP, SEK…) the same way Daily Holes does. The site
 shows the visitor's currency only when the price has it, and otherwise falls back to euros.
@@ -41,5 +41,5 @@ Webhook events to send: `checkout.session.completed`, `customer.subscription.cre
 
 ## 4. Test it
 In test mode, use card `4242 4242 4242 4242` with any future date and any CVC:
-buy a re-fish, buy both colours, start the Club monthly plan, then cancel it in the portal.
+buy a re-fish, buy both colours, start the Pro monthly plan, then cancel it in the portal.
 Check that each one changes the game (the shop shows *Owned* / *You're a member*).

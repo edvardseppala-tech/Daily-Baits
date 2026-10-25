@@ -1,12 +1,28 @@
 # Prompts for Lovable: accounts, leaderboard, Stripe and site pages
 
-These replace the earlier prompts. Send them **one at a time**, and wait until each one works before
+These replace the earlier prompts. If you've already sent some, send the fix prompt first, then carry on from where you got to. Send them **one at a time**, and wait until each one works before
 sending the next. Before prompt 3, do the Stripe dashboard steps in `docs/STRIPE_SETUP.md`.
+
+## Fix prompt: send this first (the error popup and the Profile button)
+
+```text
+Two problems on the home screen. First, a "Seroval caught an error during the parsing process … The value [object Object] of type "object" cannot be parsed/serialized" popup. Second, a floating "Profile" button over the bottom right of the game.
+
+1. Fix the Seroval error. One of the server functions (createServerFn) is being given, or is returning, something that can't be serialized: a raw Stripe or Supabase object, an Error, a Date, a class instance, a Map/Set, or an object with functions in it. Find every server function the game screen calls (entitlements, displayPrices, getPlayer/profile, leaderboard, customization, submitScore) and make sure each one:
+   - receives only plain JSON as input: numbers, strings, booleans, plain objects and arrays (pass the day as a number, never the whole score or event object unless it's plain JSON),
+   - returns only plain JSON in exactly the shapes in src/lib/daily-baits-api.ts: copy the fields you need out of Stripe/Supabase objects, turn dates into ISO strings, and never return an Error. Return { ok: false, reason } or throw new Error("short message") instead.
+   - catches its own errors, so a failure becomes a short friendly message and not a serialization crash.
+   Then check the browser console and network tab on a fresh load, signed out and signed in, and confirm no server function fails.
+2. Remove the floating "Profile" button, and don't add any other buttons or overlays on top of the game. The game already has its own tab bar (Fish / Board / Book / You), a "Go Pro" button and a burger menu with the profile, sign-in, Pro, re-fish and colour pages. The website shell should only show the game full screen, plus the Stripe checkout overlay when buy() is called.
+3. Make sure the project's GitHub sync is on and pushing to edvardseppala-tech/Daily-Baits on the main branch, so your changes show up there.
+
+The membership is now shown to players as "Daily Baits Pro" (button "Go Pro"). Keep the Stripe lookup keys club_monthly / club_yearly and the tier value "club" in code exactly as they are. Only the words players see change: say "Pro" instead of "Club" on any page you've made.
+```
 
 ## Prompt 1: Accounts
 
 ```text
-Daily Baits is a daily fishing game. The game is public/dailybaits.html and is shown full screen by src/GameFrame.tsx. Never edit, rewrite or restyle the game file. The game already draws its own sign-in sheet, profile, tab bar, burger menu, shop and leaderboard. Your job is to give it real data through window.dailyBaitsApi. The exact contract, with types, is in src/lib/daily-baits-api.ts. Read it first and follow it exactly.
+Daily Baits is a daily fishing game. The game is public/dailybaits.html and is shown full screen by src/GameFrame.tsx. Never edit, rewrite or restyle the game file. The game already draws its own sign-in sheet, profile, tab bar, burger menu, Go Pro / re-fish / colour pages and leaderboard. Never add buttons or overlays on top of it. Your job is to give it real data through window.dailyBaitsApi. The exact contract, with types, is in src/lib/daily-baits-api.ts. Read it first and follow it exactly.
 
 Use Lovable Cloud (Supabase) for accounts:
 - Email + password, password reset, Google sign-in and Apple sign-in. The game's sign-in sheet puts "Continue with Apple" and "Continue with Google" at the top, so both providers must really work: set them up in Lovable Cloud auth (Apple needs an Apple Developer Services ID and key; Google needs an OAuth client). signInWithProvider should resolve only once the player is signed in, or throw if they cancel.
@@ -52,7 +68,7 @@ Server functions:
 - createCheckout(key, source): signed-in only. Refuse a colour the player already owns, custom_pair if they own either colour, and the Club if they're already a member. Find or create the Stripe customer with metadata.userId. Create an embedded Checkout Session (mode "subscription" for club_*, otherwise "payment") with metadata { userId, key, source } (also on subscription_data for subscriptions) and automatic tax. Return the client secret.
 - billingPortal(): open the Stripe customer portal and return to the site. Only allow return URLs on our own domains.
 - Webhook (verify the signature): on checkout.session.completed for a payment, grant refish_single = 1 token, refish_pack3 = 3 tokens, custom_bobber / custom_line / custom_pair = the matching cosmetics rows. It must be idempotent by session id. On customer.subscription.created/updated/deleted, upsert the subscriptions row. On charge.refunded, remove unused tokens and the cosmetics from that session.
-- Tier: "club" while a club_* subscription is active or trialing (or past_due within 3 days), else "free". Use it in getPlayer, entitlements and the leaderboard club flag.
+- Tier: "club" while a club_* subscription is active or trialing (or past_due within 3 days), else "free". Use it in getPlayer, entitlements and the leaderboard club flag (the game shows it as a "Pro" badge).
 - getCustomization / saveCustomization: bobber must be one of classic, pine, sunset, ghost, gold, and only members may save anything but classic. bobber_color needs the bobber cosmetic and line_color the line cosmetic, and both must be valid #rrggbb colours.
 
 In GameFrame.tsx, implement on window.dailyBaitsApi: displayPrices, buy(key, source), manageMembership, customization, saveCustomization, and make entitlements/getPlayer return real data. buy() opens Stripe Embedded Checkout in a centred overlay above the game, with a close button. When the purchase completes, close it, re-read the account and call iframe.contentWindow.dailyBaits?.refresh(). Do the same when the player comes back from the portal.
@@ -66,8 +82,8 @@ Test-mode publishable keys start with pk_test_ and live ones with pk_live_. Stor
 
 ```text
 The game's burger menu calls window.dailyBaitsApi.openPage(path). Implement openPage to navigate to these pages and add them, styled like the game (see prompt 1), each with a "Back to the water" link to /:
-- /how-to-play: how Daily Baits works: one seeded water a day, 10 casts, read the depth and cover, shadows only hint at the species, lures (Popper shallow, Spinner mid, Jig deep), cast accuracy, strike timing, tension reeling, points from size × rarity (Common ×1 to Legendary ×9), Explore (30 casts a day, unlimited for Club), the handbook, and the Master Baiter tag.
-- /pricing: free to play; Re-fish €0.89 or 3 for €1.99; custom bobber or line colour €1.99 each, €2.99 for both (kept forever, not part of the Club); Daily Baits Club €4.99/month or €39/year (4 months free): unlimited Explore, 2 re-fishes a day, every bobber style including gold, a Club badge, cancel anytime. Show live prices from displayPrices when available. VAT included.
+- /how-to-play: how Daily Baits works: one seeded water a day, 10 casts, read the depth and cover, shadows only hint at the species, lures (Popper shallow, Spinner mid, Jig deep), cast accuracy, strike timing, tension reeling, points from size × rarity (Common ×1 to Legendary ×9), Explore (30 casts a day, unlimited with Pro), the handbook, and the Master Baiter tag.
+- /pricing: free to play; Re-fish €0.89 or 3 for €1.99; custom bobber or line colour €1.99 each, €2.99 for both (kept forever, not part of Pro); Daily Baits Pro €4.99/month or €39/year (4 months free): unlimited Explore, 2 re-fishes a day, every bobber style including gold, a Pro badge, cancel anytime. Show live prices from displayPrices when available. VAT included.
 - /about, /contact (a simple email contact), /privacy, /terms and /refunds. Base these on the Daily Holes ones, but say Daily Baits and describe Daily Baits' purchases.
 Also add a sitemap and good meta titles/descriptions for each page, with og:image /assets/venue-lake.webp.
 ```

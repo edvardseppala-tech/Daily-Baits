@@ -20,11 +20,12 @@ installs the bridge below, and shows a retry screen if the game fails to start.
   scores and leaderboard, Club and purchases, customization, and site pages. Every member is optional,
   and the game hides whatever is missing. After any auth or purchase change, the shell calls
   `iframe.contentWindow.dailyBaits.refresh()`.
-- The game draws its own UI: the tab bar (Fish / Board / Book / You), burger menu, sign-in sheet, profile,
-  shop, leaderboard tabs and re-fish. The shell supplies the data and the Stripe checkout and portal.
+- The game draws its own UI: the tab bar (Fish / Board / Book / You), Go Pro button, burger menu, sign-in sheet,
+  profile, Go Pro / Re-fishes / Custom colours pages, leaderboard tabs and re-fish. The shell must not draw
+  buttons or overlays on top of the game (only the Stripe checkout overlay). The shell supplies the data and the Stripe checkout and portal.
 - If `window.__dbBootError` is set after the iframe loads, the game failed to start; show a retry screen.
 - Today's water depends only on the date (`dailySeed(day)`), so every player and the server see the
   same water. Changing generation replaces today's water for everyone.
 - Payments: Stripe, in the separate **Daily Baits** Stripe account (same organisation as Daily Holes).
   Products and lookup keys are listed in `docs/STRIPE_SETUP.md`: re-fish (1 or 3), custom bobber/line colours,
-  and the Daily Baits Club (monthly/yearly). Entitlements are decided on the server only.
+  and the membership (monthly/yearly), shown to players as **Daily Baits Pro** (code and Stripe keys still say `club`). Entitlements are decided on the server only.
