@@ -17,8 +17,12 @@ installs the bridge below, and shows a retry screen if the game fails to start.
 - Do not edit the same file from both sides at once. Pull before working; push only working changes.
 - The shell shows the game in a full-height iframe at `/dailybaits.html`. Everything native to the
   shell reaches the game through `window.parent.dailyBaitsApi` (all optional):
-  - `submitScore({ day, pts, kg, log })` is called when a daily round ends (never for Explore).
+  - `submitScore({ day, venue, seed, pts, kg, casts, log })` is called when a daily round ends (never for Explore).
   - `haptic(ms)` is called for bites, surges and landings.
+  - `getPlayer()` returns `{ name }` or `null` (synchronous); the home screen shows the name or "Sign in".
+  - `openSignIn()`, `openProfile()`, `openLeaderboard()` navigate to the shell's pages. With no
+    `openLeaderboard`, the game falls back to its own local board.
+  - After auth changes the shell calls `iframe.contentWindow.dailyBaits.refresh()`.
 - If `window.__dbBootError` is set after the iframe loads, the game failed to start; show a retry screen.
 - Today's water depends only on the date (`dailySeed(day)`), so every player and the server see the
   same water. Changing generation replaces today's water for everyone.

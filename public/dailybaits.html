@@ -35,6 +35,15 @@ button{font-family:inherit;color:inherit}
   border:1px solid var(--line-soft);background:#fff;font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim)}
 .streakBadge b{font-family:var(--sans);font-variation-settings:'wdth' 98,'wght' 700;font-size:14px;letter-spacing:0;color:var(--flag)}
 .topTools{position:absolute;top:18px;right:18px;z-index:3;display:flex;gap:6px}
+.homeBrand{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:3;height:42px;display:flex;align-items:center;gap:7px;white-space:nowrap;
+  font-size:21px;font-variation-settings:'wdth' 84,'wght' 780;letter-spacing:-.01em;color:var(--chalk)}
+.homeBrand em{font-style:normal;color:var(--flag)}
+.homeBrand svg{width:20px;height:20px;fill:none;stroke:var(--flag);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.topSignIn{height:42px;padding:0 14px;border-radius:12px;border:0;background:var(--flag);color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.topSignIn.me{background:#fff;color:var(--flag);border:1px solid var(--line-soft)}
+.topSignIn[hidden],.topTool[hidden]{display:none}
+@media(max-width:380px){.homeBrand svg{display:none}.homeBrand{font-size:19px}}
+@media(max-width:480px){.topTools.withSign .topTool{display:none}.topSignIn{max-width:96px}}
 .topTool{width:42px;height:42px;border:1px solid var(--line-soft);border-radius:12px;background:#fff;color:var(--flag);display:grid;place-items:center;cursor:pointer;padding:0}
 .topTool svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .menuMotif{position:relative;z-index:0;overflow:hidden;flex:none;width:calc(100% + 44px);margin:0 -22px 12px;height:min(max(56vw,300px),320px);background:#DCE8EE}
@@ -209,11 +218,12 @@ button{font-family:inherit;color:inherit}
 
 <!-- ============================ HOME ============================ -->
 <section class="screen" id="home">
-  <div class="streakBadge" id="streakBadge"><b id="streakNum">0</b><span>day streak</span></div>
+  <div class="streakBadge" id="streakBadge" title="Day streak">🔥 <b id="streakNum">0</b></div>
+  <div class="homeBrand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-4.5 7.5-5.5 12-3l4-3v12l-4-3c-4.5 2.5-9 1.5-12-3Z"/><circle cx="7.5" cy="11.2" r=".6"/></svg>Daily <em>Baits</em></div>
   <div class="topTools">
-    <button class="topTool" id="tBook" aria-label="Handbook" title="Handbook"><svg viewBox="0 0 24 24"><path d="M4 5.5C6.5 4.3 9 4.3 11.5 5.5v13C9 17.3 6.5 17.3 4 18.5Z"/><path d="M20 5.5c-2.5-1.2-5-1.2-7.5 0v13c2.5-1.2 5-1.2 7.5 0Z"/></svg></button>
     <button class="topTool" id="tBoard" aria-label="Leaderboard" title="Leaderboard"><svg viewBox="0 0 24 24"><path d="M6 20v-6"/><path d="M12 20V7"/><path d="M18 20v-9"/></svg></button>
     <button class="topTool" id="tHow" aria-label="How to fish" title="How to fish"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.5"/><path d="M12 16.8v.2"/></svg></button>
+    <button class="topSignIn" id="tSignIn" hidden>Sign in</button>
   </div>
   <div class="menuMotif">
     <div class="motifHead">
@@ -240,7 +250,7 @@ button{font-family:inherit;color:inherit}
   </div>
   <div class="kicker">The waters</div>
   <div class="venueStrip" id="venueStrip"></div>
-  <div class="foot">Playing as a guest · Daily Baits</div>
+  <div class="foot" id="whoLine">Playing as a guest · Daily Baits</div>
 </section>
 
 <!-- ============================ GAME ============================ -->
@@ -1202,7 +1212,11 @@ function saveRun() { if (!G.practice) store.set('run.' + G.day, { seed: G.seed, 
 const totals = () => G.log.reduce((a, e) => (a.pts += e.pts || 0, a.kg += e.w || 0, a), { pts: 0, kg: 0 });
 
 function setHint(t) { $('#hint').textContent = t; }
-function haptic(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch {} try { window.parent.dailyBaitsApi?.haptic?.(ms); } catch {} }
+// The site shell (Lovable) may provide window.dailyBaitsApi on the parent page. Every hook is optional:
+// with no shell the game falls back to its own local board and plays as a guest.
+const host = () => { try { return window.parent.dailyBaitsApi || null; } catch { return null; } };
+const player = () => { try { return host()?.getPlayer?.() || null; } catch { return null; } };   // { name } or null
+function haptic(ms) { try { const h = host(); if (h?.haptic) h.haptic(ms); else navigator.vibrate && navigator.vibrate(ms); } catch {} }
 const ARROWS = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'];
 const windArrow = w => ARROWS[Math.round(((w.a % 6.283) + 6.283) % 6.283 / (6.283 / 8)) % 8];
 function updateHud() {
@@ -1603,7 +1617,7 @@ function finishDay() {
   const t = totals();
   if (!G.practice) {
     history[G.day] = { pts: t.pts, kg: Math.round(t.kg * 100) / 100, venue: G.venue.id }; store.set('history', history);
-    try { window.parent.dailyBaitsApi?.submitScore?.({ day: G.day, pts: t.pts, kg: t.kg, log: G.log }); } catch {}
+    try { host()?.submitScore?.({ day: G.day, venue: G.venue.id, seed: G.seed, pts: t.pts, kg: Math.round(t.kg * 100) / 100, casts: G.log.length, log: G.log }); } catch {}
   }
   setHint(G.practice ? 'Out of explore casts. More tomorrow.' : 'Done for today. New water tomorrow.');
   $('#castBtn').disabled = true; showResults();
@@ -1625,11 +1639,13 @@ function showResults() {
   openSheet(`<div class="panelHead"><h2>${G.practice ? 'Exploration' : 'Today’s bag'}</h2><button class="close">✕</button></div>${head}
     <div class="bigScore"${G.practice ? ' hidden' : ''}><div><span>Points</span><b>${t.pts}</b></div><div><span>Weight</span><b>${t.kg.toFixed(1)}<small style="font-size:13px"> kg</small></b></div>
     <div><span>Caught</span><b>${G.log.filter(e => e.res === 'catch').length}<small style="font-size:13px">/${CASTS}</small></b></div></div>
+    ${!G.practice && host()?.openSignIn && !player() ? `<p class="note"><b>Sign in to post this score</b> to the daily leaderboard and chase the Master Baiter tag. <button class="btn" id="signPost" style="min-height:34px;padding:6px 12px;margin-left:4px">Sign in</button></p>` : ''}
     <div class="secHead">Casts</div><div class="rows">${rows}</div>
     <div class="btnRow">${G.practice ? '' : '<button class="p" id="shareBtn">Share</button>'}<button class="s" id="practiceBtn">${G.practice ? 'Other water' : 'Explore'}</button><button class="s" id="homeBtn">Home</button></div>`);
   const sb = $('#shareBtn');
   if (sb) sb.onclick = async () => { const txt = shareText(); try { if (navigator.share) await navigator.share({ text: txt }); else { await navigator.clipboard.writeText(txt); sb.textContent = 'Copied'; } } catch {} };
   $('#practiceBtn').onclick = () => { closeSheet(); showPractice(); };
+  const sp = $('#signPost'); if (sp) sp.onclick = () => host()?.openSignIn?.();
   $('#homeBtn').onclick = () => { closeSheet(); showScreen('home'); };
 }
 function showBoard() {
@@ -1698,6 +1714,10 @@ function renderHome() {
   $('#todayWhat').textContent = `Today: ${v.name}`;
   $('#todayWhere').textContent = `${v.mood.split(' · ')[0]} · wind ${windArrow(w)} ${Math.round(w.s * 9)} m/s`;
   const s = streak(); $('#streakNum').textContent = s;
+  const h = host(), me = player();
+  $('#tSignIn').hidden = !h?.openSignIn; $('.topTools').classList.toggle('withSign', !!h?.openSignIn);
+  $('#tSignIn').textContent = me ? me.name : 'Sign in'; $('#tSignIn').classList.toggle('me', !!me);
+  $('#whoLine').textContent = (me ? 'Playing as ' + me.name : 'Playing as a guest') + ' · Daily Baits';
   $('#startChip').hidden = !s; $('#startChipN').textContent = s;
   if (done) { $('#startTxt').textContent = 'See today’s bag'; $('#startSub').textContent = `${history[day].pts} points · new water tomorrow`; }
   else if (saved && saved.log && saved.log.length) { $('#startTxt').textContent = 'Keep fishing'; $('#startSub').textContent = `${CASTS - saved.log.length} casts left today`; }
@@ -1715,8 +1735,13 @@ function showScreen(name) {
 }
 $('#startBtn').onclick = () => startGame(false);
 $('#hPractice').onclick = showPractice;
-$('#hBook').onclick = $('#tBook').onclick = showBook;
-$('#hBoard').onclick = $('#tBoard').onclick = showBoard;
+$('#hBook').onclick = showBook;
+// The shell's leaderboard page replaces the local one when it exists.
+const openBoard = () => { const h = host(); if (h?.openLeaderboard) h.openLeaderboard(); else showBoard(); };
+$('#hBoard').onclick = $('#tBoard').onclick = openBoard;
+$('#tSignIn').onclick = () => { const h = host(); if (player()) h?.openProfile ? h.openProfile() : h?.openSignIn?.(); else h?.openSignIn?.(); };
+// The shell calls this after sign-in or sign-out so the home screen updates.
+window.dailyBaits = { refresh: () => { if (!$('#home').hidden) renderHome(); } };
 $('#hHow').onclick = $('#tHow').onclick = showHow;
 $('#bookBtn').onclick = showBook;
 $('#backBtn').onclick = () => showScreen('home');
