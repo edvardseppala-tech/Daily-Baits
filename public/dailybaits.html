@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
 <title>Daily Baits</title>
 <meta name="description" content="One water a day. Ten casts. Read the water, cast from the pier, and reel in whatever is lurking.">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/brand/favicon-32.png">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/brand/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script>
@@ -35,11 +38,11 @@ button{font-family:inherit;color:inherit}
 .homeBrand{position:absolute;top:18px;left:20px;z-index:3;height:42px;display:flex;align-items:center;gap:7px;white-space:nowrap;
   font-size:21px;font-variation-settings:'wdth' 84,'wght' 780;letter-spacing:-.01em;color:var(--chalk)}
 .homeBrand em{font-style:normal;color:var(--flag)}
-.homeBrand svg{width:20px;height:20px;fill:none;stroke:var(--flag);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.homeBrand img{width:30px;height:30px;border-radius:8px;display:block;box-shadow:0 1px 4px rgba(20,40,30,.18)}
 .topSignIn{height:42px;padding:0 14px;border-radius:12px;border:0;background:var(--flag);color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
 .topSignIn.me{background:#fff;color:var(--flag);border:1px solid var(--line-soft)}
 .topSignIn[hidden],.topTool[hidden]{display:none}
-@media(max-width:360px){.homeBrand svg{display:none}}
+@media(max-width:360px){.homeBrand img{display:none}}
 .topSignIn .ini{display:none}
 .topSignIn.member{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:0 14px 0 11px;font-size:13px;font-weight:600;max-width:none}
 .topSignIn.member svg{width:16px;height:16px;flex:none}
@@ -309,7 +312,7 @@ button{font-family:inherit;color:inherit}
 
 <!-- ============================ HOME ============================ -->
 <section class="screen" id="home">
-  <div class="homeBrand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-4.5 7.5-5.5 12-3l4-3v12l-4-3c-4.5 2.5-9 1.5-12-3Z"/><circle cx="7.5" cy="11.2" r=".6"/></svg>Daily <em>Baits</em></div>
+  <div class="homeBrand"><img src="assets/brand/favicon-64.png" alt="" width="30" height="30">Daily <em>Baits</em></div>
   <div class="topTools">
     <button class="topSignIn" id="tSignIn" hidden>Sign in</button>
     <button class="burgerBtn" id="burgerBtn" aria-label="Menu"><span></span><span></span><span></span></button>
