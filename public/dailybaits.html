@@ -7,6 +7,12 @@
 <meta name="description" content="One water a day. Ten casts. Read the water, cast from the pier, and reel in whatever is lurking.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+// Startup watchdog for a host shell (the Lovable site iframes this page): a script error
+// before boot finishes is recorded here so the shell can show a recovery screen.
+window.__dbBootError = null;
+window.addEventListener('error', function (e) { if (!window.__dbBooted) window.__dbBootError = String(e.message || e); });
+</script>
 <style>
 :root{
   --ink:#F3F6F2; --ink2:#FFFFFF; --ink3:#EAF1EB;
@@ -93,8 +99,8 @@ button{font-family:inherit;color:inherit}
 .hudRow b{display:block;font-size:16px;font-variation-settings:'wdth' 82,'wght' 600;white-space:nowrap}
 .hudRow b small{font-size:10px;color:var(--dim);font-family:var(--mono);font-weight:400}
 .stage{position:relative;flex:1;min-height:0;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:#cfe3e8;touch-action:none}
-.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
-.stage canvas.grab{cursor:grabbing}
+.stage > canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:crosshair}
+.stage > canvas.grab{cursor:grabbing}
 .camTools{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
 .camTools button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:rgba(255,255,255,.92);cursor:pointer;font-family:var(--mono);font-size:15px;line-height:1;padding:0;display:grid;place-items:center}
 .camTools svg{width:16px;height:16px;fill:none;stroke:var(--chalk);stroke-width:1.8;stroke-linecap:round}
@@ -115,6 +121,19 @@ button{font-family:inherit;color:inherit}
 .toast .tx b{display:block;font-size:16px;font-variation-settings:'wght' 650;line-height:1.2}
 .toast .tx small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
 .toast .pt{font-family:var(--mono);font-size:14px;color:var(--flag);white-space:nowrap}
+/* The catch: a card that slides in from the right edge of the map with the fish drawn large. */
+.catchCard{position:absolute;right:12px;top:50%;width:min(64%,290px);z-index:3;background:rgba(255,255,255,.97);border:1px solid var(--line);
+  border-radius:16px;padding:12px 14px 13px;box-shadow:0 18px 40px -18px rgba(20,40,30,.45);transform:translate(130%,-50%);
+  transition:transform .38s cubic-bezier(.2,.9,.25,1.15);pointer-events:none;overflow:hidden}
+.catchCard.on{transform:translate(0,-50%)}
+.catchCard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tier,#7E8C83)}
+.catchCard .eb{font-family:var(--mono);font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim)}
+.catchCard canvas{display:block;width:100%;height:118px;margin:4px 0 6px}
+.catchCard b{display:block;font-size:19px;font-variation-settings:'wdth' 90,'wght' 720;line-height:1.15}
+.catchCard .meta{display:flex;align-items:center;gap:6px;margin-top:5px;flex-wrap:wrap}
+.catchCard .chip{margin-top:0}
+.catchCard .w{font-family:var(--mono);font-size:11px;color:var(--chalk)}
+.catchCard .pts{position:absolute;right:14px;top:11px;font-family:var(--mono);font-size:14px;color:var(--flag)}
 .newTag.pb{background:#C98A1B}
 .newTag{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;background:var(--flag);color:#fff;border-radius:99px;padding:1px 6px;margin-left:6px;vertical-align:2px}
 .meter,.reel{padding:10px 12px 12px;display:none}
@@ -247,6 +266,7 @@ button{font-family:inherit;color:inherit}
     <div class="probe" id="probe"></div>
     <div class="banner" id="banner"><b>STRIKE!</b><small>TAP NOW</small></div>
     <div class="toast" id="toast"></div>
+    <div class="catchCard" id="catchCard"></div>
     <div class="meter" id="meter">
       <div class="mLabel"><span>Accuracy</span><b>Tap to release</b></div>
       <div class="bar"><div class="good"></div><div class="sweet"></div><div class="needle" id="mNeedle"></div></div>
@@ -1535,13 +1555,17 @@ function nextCast() {
 function showToast(e) {
   const el = $('#toast');
   if (e.res === 'catch') {
-    const sp = spById(e.sp), T = TIERS[e.tier];
-    el.innerHTML = `<canvas></canvas><div class="tx"><b>${sp.name}${e.isNew ? '<span class="newTag">NEW</span>' : ''}${e.isPB ? '<span class="newTag pb">PB</span>' : ''}</b><small style="color:${T.c}">${T.k}${e.trophy ? ' · Trophy' : ''} · ${e.w.toFixed(2)} kg</small></div><div class="pt">${G.practice ? (e.isPB ? 'Best!' : '') : '+' + e.pts}</div>`;
-    el.classList.add('on'); paintFishCanvas(el.querySelector('canvas'), sp);
+    const sp = spById(e.sp), T = TIERS[e.tier], card = $('#catchCard');
+    card.style.setProperty('--tier', T.c);
+    card.innerHTML = `<div class="eb">${e.isNew ? 'New species' : e.isPB ? 'Personal best' : 'You caught'}</div>
+      <div class="pts">${G.practice ? '' : '+' + e.pts}</div><canvas></canvas>
+      <b>${sp.name}</b><div class="meta"><span class="chip" style="background:${T.c}">${T.k}</span>${e.trophy ? '<span class="chip" style="background:#C98A1B">Trophy</span>' : ''}
+      ${e.isNew ? '<span class="newTag" style="margin:0">NEW</span>' : ''}${e.isPB ? '<span class="newTag pb" style="margin:0">PB</span>' : ''}<span class="w">${e.w.toFixed(2)} kg</span></div>`;
+    card.classList.add('on'); paintFishCanvas(card.querySelector('canvas'), sp);
     G.toastHold = 3;
   } else { el.innerHTML = `<div class="tx"><b>${e.why}</b><small>${G.practice ? exploreLeft() + ' explore casts left today' : 'Cast ' + G.cast + ' of ' + CASTS}</small></div>`; el.classList.add('on'); G.toastHold = 2.1; }
 }
-function hideToast() { $('#toast').classList.remove('on'); }
+function hideToast() { $('#toast').classList.remove('on'); $('#catchCard').classList.remove('on'); }
 
 /* =====================================================================
    LOOP
@@ -1704,6 +1728,7 @@ window.addEventListener('resize', resize);
 showScreen('home');
 if (!store.get('seenHow', false)) { store.set('seenHow', true); showHow(); }
 requestAnimationFrame(frame);
+window.__dbBooted = true;
 </script>
 </body>
 </html>
