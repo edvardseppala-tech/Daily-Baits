@@ -9,7 +9,7 @@ sending the next. Before prompt 3, do the Stripe dashboard steps in `docs/STRIPE
 Daily Baits is a daily fishing game. The game is public/dailybaits.html and is shown full screen by src/GameFrame.tsx. Never edit, rewrite or restyle the game file. The game already draws its own sign-in sheet, profile, tab bar, burger menu, shop and leaderboard. Your job is to give it real data through window.dailyBaitsApi. The exact contract, with types, is in src/lib/daily-baits-api.ts. Read it first and follow it exactly.
 
 Use Lovable Cloud (Supabase) for accounts:
-- Email + password, password reset, Google sign-in and Apple sign-in.
+- Email + password, password reset, Google sign-in and Apple sign-in. The game's sign-in sheet puts "Continue with Apple" and "Continue with Google" at the top, so both providers must really work: set them up in Lovable Cloud auth (Apple needs an Apple Developer Services ID and key; Google needs an OAuth client). signInWithProvider should resolve only once the player is signed in, or throw if they cancel.
 - A profiles table: id (auth user id), display_name (3–20 characters, unique, no offensive words), created_at.
 - In GameFrame.tsx, implement these on window.dailyBaitsApi: getPlayer (synchronous: keep { name, tier } in memory; tier is "free" for now), signIn, signUp (with display name; return { needsConfirm: true } if email confirmation is needed), signInWithProvider, resetPassword, signOut, renameMe, deleteAccount. Keep haptic and submitScore working.
 - Throw an Error with a short, friendly message when something fails. The game shows error.message to the player.

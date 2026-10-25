@@ -118,8 +118,12 @@ button{font-family:inherit;color:inherit}
 .field input:focus{outline:2px solid rgba(31,122,76,.3);border-color:var(--flag)}
 .err{color:var(--warn);font-size:12.5px;margin-top:8px;min-height:17px}
 .ok{color:var(--flag);font-size:12.5px;margin-top:8px}
-.oauth{display:flex;gap:8px;margin-top:12px}
-.oauth button{flex:1;height:44px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:600;cursor:pointer;font-size:14px}
+.oauth{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.oauth button{display:flex;align-items:center;justify-content:center;gap:10px;height:48px;border-radius:12px;border:1px solid var(--line);background:#fff;
+  color:#1F1F1F;font-weight:600;cursor:pointer;font-size:15px;font-family:inherit}
+.oauth button svg{width:19px;height:19px;flex:none}
+.oauth button.apple{background:#000;border-color:#000;color:#fff}
+.oauth button:disabled{opacity:.6;cursor:default}
 .sep{display:flex;align-items:center;gap:10px;margin:14px 0 2px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--dimmer);text-transform:uppercase}
 .sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--line)}
 .linkBtn{background:none;border:0;color:var(--flag);font-weight:600;cursor:pointer;padding:0;font-size:13px;text-decoration:underline;font-family:inherit}
@@ -1587,7 +1591,12 @@ function tap(e) {
   } else action();
 }
 $('#castBtn').addEventListener('click', () => action());
-window.addEventListener('keydown', e => { if (!G || $('#game').hidden) return; if (e.code === 'Space') { e.preventDefault(); if (G.state === 'reel') G.reel.hold = true; else if (!e.repeat) action(); } });
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('#sheet').classList.contains('on')) { closeSheet(); return; }
+  // Typing in a form, or anything with a sheet open, is not a cast.
+  if (e.target.closest && e.target.closest('input, textarea, select, [contenteditable]')) return;
+  if ($('#sheet').classList.contains('on')) return;
+  if (!G || $('#game').hidden) return; if (e.code === 'Space') { e.preventDefault(); if (G.state === 'reel') G.reel.hold = true; else if (!e.repeat) action(); } });
 window.addEventListener('keyup', e => { if (G && e.code === 'Space' && G.state === 'reel') G.reel.hold = false; });
 document.addEventListener('pointerdown', e => { if (G && G.state === 'reel' && !e.target.closest('.sheet') && !e.target.closest('.camTools')) G.reel.hold = true; });
 document.addEventListener('pointerup', () => { if (G && G.state === 'reel') G.reel.hold = false; });
@@ -1690,6 +1699,22 @@ function endCast(e) {
   showToast(e); updateHud();
   $('#castBtn').textContent = 'Cast'; $('#castBtn').disabled = true;
 }
+// Leaving the water (Home, reload, closing the tab) in the middle of a cast spends that cast as a miss,
+// so a reel that is going badly can't be escaped and retried.
+const MID_CAST = ['flight', 'wait', 'bite', 'reel'];
+function abandonCast() {
+  if (G && G.state === 'meter') { G.state = 'aim'; $('#meter').classList.remove('on'); $('#castBtn').textContent = 'Cast'; return; }   // the line isn't out yet
+  if (!G || !MID_CAST.includes(G.state)) return;
+  if (G.hooked) G.hooked.spooked = 1;
+  G.reel = null; G.hooked = null;
+  G.log.push({ res: 'miss', why: 'Left the water mid-cast.' }); G.cast++; saveRun();
+  if (G.practice) store.set('explore.' + G.day, exploreUsed() + 1);
+  G.state = G.practice ? (exploreLeft() <= 0 ? 'done' : 'aim') : G.cast >= CASTS ? 'done' : 'aim';
+  G.bob = null; G.target = null;
+  ['#banner', '#meter', '#reel'].forEach(q => $(q).classList.remove('on'));
+  if (G.state === 'done') finishDay();
+}
+window.addEventListener('pagehide', abandonCast);
 function nextCast() {
   hideToast(); G.bob = null; G.target = null; $('#castBtn').disabled = false; $('#castBtn').textContent = 'Cast';
   if (G.practice ? exploreLeft() <= 0 : G.cast >= CASTS) { G.state = 'done'; finishDay(); return; }
@@ -1770,6 +1795,7 @@ function showResults() {
   openSheet(`<div class="panelHead"><h2>${G.practice ? 'Exploration' : 'Today’s bag'}</h2><button class="close">✕</button></div>${head}
     <div class="bigScore"${G.practice ? ' hidden' : ''}><div><span>Points</span><b>${t.pts}</b></div><div><span>Weight</span><b>${t.kg.toFixed(1)}<small style="font-size:13px"> kg</small></b></div>
     <div><span>Caught</span><b>${G.log.filter(e => e.res === 'catch').length}<small style="font-size:13px">/${CASTS}</small></b></div></div>
+    ${!G.practice && history[G.day] && history[G.day].pts > t.pts ? `<p class="note">Your best today is <b>${history[G.day].pts} points</b>, and that’s the score that counts.</p>` : ''}
     ${!G.practice && canAuth() && !player() ? `<p class="note"><b>Sign in to post this score</b> to the daily leaderboard and chase the Master Baiter tag. <button class="btn" id="signPost" style="min-height:34px;padding:6px 12px;margin-left:4px">Sign in</button></p>` : ''}
     <div class="secHead">Casts</div><div class="rows">${rows}</div>
     ${!G.practice && host()?.startRefish ? refishBlock() : ''}
@@ -1783,10 +1809,10 @@ function showResults() {
 }
 function showLocalBoard() {
   const days = Object.keys(history).sort((a, b) => history[b].pts - history[a].pts).slice(0, 10), mb = masterBaiter(), today = dayNumber();
-  const rows = days.length ? days.map((d, i) => `<div class="row${+d === today ? ' me' : ''}"><span class="n">${i + 1}</span><span class="nm">Day #${d}${d === mb ? '<span class="mb">Master Baiter</span>' : ''}<small>${(VENUES.find(v => v.id === history[d].venue) || {}).name || ''}</small></span><span class="v">${history[d].pts}</span></div>`).join('')
+  const rows = days.length ? days.map((d, i) => `<div class="row${+d === today ? ' me' : ''}"><span class="n">${i + 1}</span><span class="nm">Day #${d}${d === mb ? '<span class="owned" style="margin-left:6px">Your best</span>' : ''}<small>${(VENUES.find(v => v.id === history[d].venue) || {}).name || ''}</small></span><span class="v">${history[d].pts}</span></div>`).join('')
     : `<div class="row"><span class="nm" style="color:var(--dim)">Finish today’s water to post a score.</span></div>`;
   openSheet(`<div class="panelHead"><h2>Leaderboard</h2><button class="close">✕</button></div>
-    <p class="note" style="margin-top:0">The top score each day earns the <span class="mb" style="margin:0">Master Baiter</span> tag. Bigger and rarer fish score more.</p>
+    <p class="note" style="margin-top:0">On the global board, the day’s top score earns the <span class="mb" style="margin:0">Master Baiter</span> tag. Bigger and rarer fish score more.</p>
     <div class="secHead">Your best days</div><div class="rows">${rows}</div>
     <p class="note">This board shows scores from this device. The global board appears when you play on the Daily Baits website.</p>`);
 }
@@ -1870,13 +1896,22 @@ function showMenu() {
   document.querySelectorAll('#panel [data-p]').forEach(b => b.onclick = () => { closeSheet(); h.openPage(b.dataset.p); });
 }
 
+// Official marks: Apple's logo in white on black, Google's four-colour G.
+const LOGO = {
+  apple: '<svg viewBox="0 0 384 512" aria-hidden="true"><path fill="currentColor" d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>',
+  google: '<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>',
+};
 // Sign in / create account / reset password, inside the game, through the shell's auth.
 function showAuth(mode, then) {
   const h = host();
   if (!h?.signIn) { if (h?.openSignIn) h.openSignIn(); return; }
   const titles = { signin: 'Sign in', signup: 'Create account', reset: 'Reset password' };
   openSheet(`<div class="panelHead"><h2>${titles[mode]}</h2><button class="close">✕</button></div>
-    <p class="note" style="margin-top:0">${mode === 'reset' ? 'We’ll email you a link to choose a new password.' : 'Save your catches, post your daily score and chase the Master Baiter tag.'}</p>
+    <p class="note" style="margin-top:0">${mode === 'reset' ? 'We’ll email you a link to choose a new password.' : 'Post your daily score to the leaderboard, chase the Master Baiter tag and keep your purchases on every device.'}</p>
+    ${mode !== 'reset' && h.signInWithProvider ? `<div class="oauth">
+        <button type="button" class="apple" data-prov="apple">${LOGO.apple}Continue with Apple</button>
+        <button type="button" data-prov="google">${LOGO.google}Continue with Google</button>
+      </div><div class="sep">or use email</div>` : ''}
     <form id="authForm" autocomplete="on">
       ${mode === 'signup' ? '<label class="field"><span>Public name</span><input name="name" required minlength="3" maxlength="20" autocomplete="nickname"></label>' : ''}
       <label class="field"><span>Email</span><input name="email" type="email" required autocomplete="email"></label>
@@ -1884,13 +1919,16 @@ function showAuth(mode, then) {
       <div class="err" id="authErr"></div>
       <div class="btnRow" style="margin-top:6px"><button class="p" type="submit" id="authGo">${mode === 'signin' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send link'}</button></div>
     </form>
-    ${mode !== 'reset' && h.signInWithProvider ? `<div class="sep">or</div><div class="oauth"><button data-prov="google">Continue with Google</button><button data-prov="apple">Continue with Apple</button></div>` : ''}
     <p class="note" style="text-align:center;margin-top:14px">
       ${mode === 'signin' ? '<button class="linkBtn" data-mode="reset">Forgot password?</button> · New here? <button class="linkBtn" data-mode="signup">Create an account</button>'
         : '<button class="linkBtn" data-mode="signin">I already have an account</button>'}</p>`);
   document.querySelectorAll('#panel [data-mode]').forEach(b => b.onclick = () => showAuth(b.dataset.mode, then));
   const err = $('#authErr'), done = async () => { closeSheet(); await refreshAccount(); if (then) then(); };
-  document.querySelectorAll('#panel [data-prov]').forEach(b => b.onclick = async () => { try { await h.signInWithProvider(b.dataset.prov); await done(); } catch (e) { err.textContent = String(e?.message || e); } });
+  document.querySelectorAll('#panel [data-prov]').forEach(b => b.onclick = async () => {
+    const all = document.querySelectorAll('#panel [data-prov]'); all.forEach(x => x.disabled = true); err.className = 'err'; err.textContent = '';
+    try { await h.signInWithProvider(b.dataset.prov); await done(); } catch (e) { err.textContent = String(e?.message || e); }
+    all.forEach(x => x.disabled = false);
+  });
   $('#authForm').onsubmit = async ev => {
     ev.preventDefault();
     const f = new FormData(ev.target), btn = $('#authGo'); btn.disabled = true; err.textContent = '';
@@ -1927,7 +1965,7 @@ function showYou() {
       <div id="renameBox"></div>
       ${canBuy() ? `<div class="shopCard${isClub() ? '' : ' club'}"><h3>${isClub() ? 'Daily Baits Club' : 'Join the Club'}</h3><p>${isClub() ? 'Unlimited explore, 2 re-fishes a day and every bobber style.' : 'Unlimited explore, 2 re-fishes a day, every bobber style and a Club badge.'}</p>
         <div class="buyRow">${isClub() ? '<button id="manageGo">Manage membership</button>' : '<button class="gold" id="clubGo">See the Club</button>'}<button id="shopGo">Shop</button></div></div>` : ''}`
-    : `<div class="shopCard"><h3>Playing as a guest</h3><p>Your catches are saved on this device only. ${canAuth() ? 'Sign in to keep them, post your daily score and chase the Master Baiter tag.' : ''}</p>
+    : `<div class="shopCard"><h3>Playing as a guest</h3><p>Your handbook and stats live on this device. ${canAuth() ? 'Sign in to post your daily score to the leaderboard and chase the Master Baiter tag.' : ''}</p>
       ${canAuth() ? '<div class="buyRow"><button class="p" id="signGo">Sign in</button><button id="joinGo">Create account</button></div>' : ''}</div>`;
   openSheet(`<div class="panelHead"><h2>${me ? 'Your profile' : 'You'}</h2><button class="close">✕</button></div>${account}
     <div class="secHead">Stats</div>${stats}${custom}
@@ -2088,7 +2126,7 @@ new MutationObserver(() => { if (!$('#sheet').classList.contains('on')) selectTa
 // The shell calls refresh() after sign-in, sign-out or a purchase, so the game re-reads the account.
 window.dailyBaits = { refresh: () => refreshAccount() };
 $('#bookBtn').onclick = showBook;
-$('#backBtn').onclick = () => showScreen('home');
+$('#backBtn').onclick = () => { abandonCast(); closeSheet(); showScreen('home'); };
 
 /* =====================================================================
    BOOT
