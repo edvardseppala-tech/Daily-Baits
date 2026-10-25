@@ -164,6 +164,26 @@ button{font-family:inherit;color:inherit}
 .danger{color:var(--warn)!important;border-color:#F0CFC6!important}
 .rows .gap{justify-content:center;color:var(--dimmer);font-family:var(--mono);font-size:10px;padding:4px}
 
+.planList{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.plan{display:flex;align-items:center;gap:12px;border:1.5px solid var(--line);border-radius:16px;padding:12px 14px;position:relative;background:#fff;cursor:pointer;text-align:left;font:inherit;color:var(--chalk)}
+.plan.on{border-color:var(--flag);background:#F5FAF6}
+.plan .r{width:20px;height:20px;border-radius:50%;border:2px solid #B9C7BC;flex:none;transition:border-width .15s}
+.plan.on .r{border:6px solid var(--flag)}
+.plan .t{flex:1;min-width:0}
+.plan b{display:block;font-size:15px;font-variation-settings:'wdth' 94,'wght' 700}
+.plan small{display:block;font-size:11.5px;color:var(--dim);margin-top:2px}
+.plan .p{text-align:right;font-size:17px;font-variation-settings:'wdth' 90,'wght' 760;white-space:nowrap}
+.plan .p small{display:inline;font-family:var(--mono);font-size:9.5px;color:var(--dim)}
+.plan .tag{position:absolute;right:12px;top:-9px;background:#F3E7C2;color:#7A5A10;font-family:var(--mono);font-size:9px;letter-spacing:.1em;padding:3px 8px;border-radius:999px;text-transform:uppercase}
+.joinBtn{width:100%;min-height:52px;margin-top:14px;border:0;border-radius:14px;background:var(--flag);color:#fff;font-weight:800;font-size:16px;cursor:pointer;box-shadow:0 10px 22px -12px rgba(31,122,76,.7)}
+.joinBtn:disabled{opacity:.6;cursor:default}
+.joinNote{text-align:center;font-size:12px;color:var(--dim);margin-top:6px}
+.justOne{display:block;margin:12px auto 0;background:none;border:0;color:var(--flag);font-weight:600;font-size:14px;text-decoration:underline;cursor:pointer;font-family:inherit}
+.btn.refishHome{display:flex;align-items:center;justify-content:center;gap:9px;width:100%}
+.btn.refishHome[hidden]{display:none}
+.btn.refishHome svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.btn.refishHome small{font-family:var(--mono);font-size:10px;letter-spacing:.06em;opacity:.75;font-weight:400}
+
 /* ================= GAME ================= */
 #game{display:flex;flex-direction:column;height:100dvh;padding:10px 16px calc(12px + env(safe-area-inset-bottom))}
 .top{display:flex;align-items:center;gap:8px;padding:0 0 8px}
@@ -310,6 +330,7 @@ button{font-family:inherit;color:inherit}
     <button class="btn solid playBig" id="startBtn"><span class="bIco"><svg viewBox="0 0 24 24"><path d="M8 5.2v13.6L19 12Z"/></svg></span>
       <span class="pTxt"><span class="bTxt" id="startTxt">Fish today</span><small id="startSub">10 casts · about 4 minutes</small></span>
       <span class="pChip" id="startChip" hidden>🔥 <b id="startChipN">0</b></span></button>
+    <button class="btn refishHome" id="refishBtn" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 5v6h-6"/></svg><span id="refishTxt">Re-fish today</span><small id="refishSub"></small></button>
   </div>
   <div class="homeTiles">
     <button class="hTile" id="hPractice"><span class="bIco"><svg viewBox="0 0 24 24"><path d="M5 19 18 6"/><path d="M18 6v5"/><path d="M14 19a2 2 0 1 0 0-.1"/></svg></span><span class="bTxt">Explore</span><small id="hExploreSub">Unranked · 30 casts a day</small></button>
@@ -2018,27 +2039,54 @@ function bindShop(source) {
 // Older call sites ask for "the shop"; each lands on its own page now.
 function showShop(focus) { return focus === 'refish' ? showRefishPage() : focus === 'colours' ? showColoursPage() : showPro(); }
 
+// Go Pro, the Daily Holes way: the comparison, a billing choice (yearly picked to start with),
+// then one button that says what it costs and goes to checkout.
+let proPlan = 'club_yearly';
+function amount(k) { const live = PRICES && PRICES.amounts && typeof PRICES.amounts[k] === 'number'; return { v: live ? PRICES.amounts[k] : FALLBACK_PRICES[k], cur: live ? PRICES.currency : 'eur', zero: live ? PRICES.zeroDecimal : false }; }
 function showPro() {
-  const pro = isClub();
-  const save = PRICES?.amounts?.club_monthly && PRICES?.amounts?.club_yearly ? Math.round(12 - PRICES.amounts.club_yearly / PRICES.amounts.club_monthly) : 4;
-  const row = (what, free, p) => `<div class="row"><span class="nm">${what}</span><span class="v" style="width:64px;text-align:center;color:var(--dim)">${free}</span><span class="v" style="width:64px;text-align:center;color:#8D6413;font-weight:600">${p}</span></div>`;
+  const pro = isClub(), y = amount('club_yearly'), m = amount('club_monthly');
+  const perMonth = money(Math.round(y.v / 12), y.cur, y.zero), freeMonths = Math.max(0, Math.round(12 - y.v / m.v));
+  const row = (what, free, p) => `<div class="row"><span class="nm">${what}</span><span class="v" style="width:80px;text-align:center;color:var(--dim)">${free}</span><span class="v" style="width:80px;text-align:center;color:#8D6413;font-weight:600">${p}</span></div>`;
   openSheet(`<div class="panelHead"><h2>${pro ? 'Your Pro membership' : 'Go Pro'}</h2><button class="close">✕</button></div>
-    <p class="note" style="margin-top:0">Daily Baits is free to play. Pro is for anglers who want more time on the water. It never changes how today’s ranked water plays.</p>
-    <div class="err" id="shopErr"></div>
-    <div class="shopCard club"><h3>Daily Baits Pro${pro ? '<span class="owned">Active</span>' : ''}</h3>
-      <div class="buyRow">${pro ? '<button id="manageGo">Manage membership</button>'
-        : `<button class="gold" data-buy="club_yearly">${price('club_yearly')} / year<small>${save} months free</small></button><button data-buy="club_monthly">${price('club_monthly')} / month<small>Cancel anytime</small></button>`}</div></div>
-    <div class="secHead">Free and Pro</div>
+    <p class="note" style="margin-top:0">${pro ? 'Thanks for supporting Daily Baits. Your membership is active.' : 'Daily Baits is free to play. Pro is for anglers who want more time on the water, and it never changes how today’s ranked water plays.'}</p>
     <div class="rows">
-      <div class="row"><span class="nm" style="color:var(--dim);font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase">What you get</span><span class="v" style="width:64px;text-align:center;font-family:var(--mono);font-size:9.5px;color:var(--dim)">FREE</span><span class="v" style="width:64px;text-align:center;font-family:var(--mono);font-size:9.5px;color:#8D6413">PRO</span></div>
-      ${row('Today’s ranked water', '✓', '✓')}${row('Leaderboard and Master Baiter', '✓', '✓')}${row('Handbook of 40 species', '✓', '✓')}
-      ${row('Explore casts a day', String(EXPLORE_CASTS), 'Unlimited')}${row('Re-fishes of today’s water', 'Buy', '2 a day')}
-      ${row('Bobber styles', 'Classic', 'All 5')}${row('Pro badge on the board', '—', '✓')}
+      <div class="row"><span class="nm"></span><span class="v" style="width:80px;text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--dim)">FREE</span><span class="v" style="width:80px;text-align:center;font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:#8D6413">PRO</span></div>
+      ${row('Re-fishes of today’s water', price('refish_single') + ' each', '2 every day')}${row('Explore casts', EXPLORE_CASTS + ' a day', 'Unlimited')}
+      ${row('Bobber styles', 'Classic', 'All · gold')}${row('Badge on the board', '—', 'Pro')}${row('Daily water, board, handbook', '✓', '✓')}
     </div>
+    ${pro ? `<div class="buyRow"><button class="p" id="manageGo">Manage membership</button></div>` : `
+    <div class="planList" role="radiogroup" aria-label="Billing">
+      <button class="plan" type="button" role="radio" data-plan="club_yearly"><span class="r"></span><span class="t"><b>Yearly</b><small>${perMonth} a month, billed once</small></span>
+        <span class="p">${price('club_yearly')}<small> / yr</small></span>${freeMonths > 0 ? `<span class="tag">${freeMonths} months free</span>` : ''}</button>
+      <button class="plan" type="button" role="radio" data-plan="club_monthly"><span class="r"></span><span class="t"><b>Monthly</b><small>Cancel anytime from the game</small></span>
+        <span class="p">${price('club_monthly')}<small> / mo</small></span></button>
+    </div>
+    <button class="joinBtn" id="joinGo"></button>
+    <div class="joinNote" id="joinNote"></div>
+    <div class="err" id="shopErr" style="text-align:center"></div>
+    <button class="justOne" id="justOne" type="button">I just want one more go</button>`}
     <div class="secHead">More extras</div>
     <div class="menuList"><button data-go="refish">${ICON.refish}Re-fishes<small>${price('refish_single')}</small></button><button data-go="colours">${ICON.colours}Custom colours<small>From ${price('custom_bobber')}</small></button></div>
     ${shopFoot()}`);
   bindShop('pro');
+  if (pro) return;
+  const pick = plan => {
+    proPlan = plan;
+    document.querySelectorAll('#panel .plan').forEach(b => { const on = b.dataset.plan === plan; b.classList.toggle('on', on); b.setAttribute('aria-checked', String(on)); });
+    const yr = plan === 'club_yearly';
+    $('#joinGo').textContent = !player() ? 'Sign in to join' : 'Join for ' + (yr ? perMonth : price('club_monthly')) + ' a month';
+    $('#joinNote').textContent = yr ? price('club_yearly') + ' billed once a year · cancel anytime' : 'Billed monthly · cancel anytime';
+  };
+  document.querySelectorAll('#panel .plan').forEach(b => b.onclick = () => pick(b.dataset.plan));
+  pick(proPlan);
+  $('#joinGo').onclick = async () => {
+    const btn = $('#joinGo');
+    if (!player()) return showAuth('signin', showPro);
+    btn.disabled = true; btn.textContent = 'Opening checkout…'; $('#shopErr').textContent = '';
+    await buy(proPlan, 'pro');
+    if ($('#joinGo')) { btn.disabled = false; pick(proPlan); }
+  };
+  $('#justOne').onclick = showRefishPage;
 }
 function showRefishPage() {
   const tokens = ACC.refishTokens || 0, today = isClub() ? ACC.clubRefishLeft || 0 : 0;
@@ -2139,6 +2187,10 @@ function renderHome() {
   else if (done) { $('#startTxt').textContent = 'See today’s bag'; $('#startSub').textContent = `${history[day].pts} points · ${refishLeft() ? 'a re-fish is ready' : 'new water tomorrow'}`; }
   else if (saved && saved.log && saved.log.length) { $('#startTxt').textContent = 'Keep fishing'; $('#startSub').textContent = `${CASTS - saved.log.length} casts left today`; }
   else { $('#startTxt').textContent = 'Fish today'; $('#startSub').textContent = '10 casts · about 4 minutes'; }
+  // Under "See today's bag": another go at today's water, once it's done (and not while a re-fish is under way).
+  const refishing = saved && saved.refish && saved.log.length < CASTS, rb = $('#refishBtn');
+  rb.hidden = !(done && !refishing && host()?.startRefish);
+  if (!rb.hidden) { const n = refishLeft(); $('#refishTxt').textContent = n ? 'Re-fish today' : 'Another go at today’s water'; $('#refishSub').textContent = n ? `· ${n} ready` : `· from ${price('refish_single')}`; }
   $('#hExploreSub').textContent = isClub() ? 'Unranked · unlimited (Pro)' : exploreLeft() ? `Unranked · ${exploreLeft()} casts left` : 'Out of casts · back tomorrow';
   $('#hBookSub').textContent = `${Object.keys(book).length} of ${ALL_SPECIES.length} species`;
 }
@@ -2148,6 +2200,7 @@ function showScreen(name) {
   window.scrollTo(0, 0);
 }
 $('#startBtn').onclick = () => startGame(false);
+$('#refishBtn').onclick = () => refishLeft() ? doRefish() : showRefishPage();
 $('#hPractice').onclick = showPractice;
 $('#hBook').onclick = showBook;
 const openBoard = () => showBoard();
