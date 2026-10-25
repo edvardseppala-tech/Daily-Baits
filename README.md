@@ -15,10 +15,16 @@ Native shells and backends talk to it through `window.parent.dailyBaitsApi` (`su
 ## Run
     python3 -m http.server 5180 -d public   # then open /dailybaits.html
 
+## Waters
+Still Lake, Fast River and Rocky Coast use the reference paintings in `public/assets/` for the home page.
+Frozen Tarn uses `venue-ice.svg`, a placeholder until real art exists. Each map is a big seeded world you can pan and zoom,
+with a pier to fish from. 40 species (10 per water), each with a drawn model in `SPECIES[...].m`.
+
 ## Roadmap
 1. ~~Prototype: casting, shadows, reeling, handbook, local board~~
-2. Readability pass on real devices
-3. Accounts + global/friends leaderboard (Supabase), server-side score verification
-4. Friends & challenges
-5. Launch: domain, OG image
-6. iOS shell (WKWebView, push, haptics). No monetisation for now.
+2. ~~Home page, big maps with piers, 40 species with models~~
+3. Real art for Frozen Tarn
+4. Accounts + global/friends leaderboard (Supabase), server-side score verification
+5. Friends & challenges
+6. Launch: domain, OG image
+7. iOS shell (WKWebView, push, haptics). No monetisation for now.
