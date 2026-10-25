@@ -633,6 +633,15 @@ function weighted(r, items, wf) { const tot = items.reduce((s, x) => s + wf(x), 
 function segDist(px, py, x1, y1, x2, y2) { const dx = x2 - x1, dy = y2 - y1, t = clamp(((px - x1) * dx + (py - y1) * dy) / (dx * dx + dy * dy || 1), 0, 1); return Math.hypot(px - x1 - dx * t, py - y1 - dy * t); }
 const hex = h => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16)];
 const mix = (a, b, t) => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+// The site shell serves this page from GitHub but may not carry every picture, so any venue picture
+// that fails to load is fetched from the repo instead.
+const ASSET_FALLBACK = 'https://raw.githubusercontent.com/edvardseppala-tech/Daily-Baits/main/public/';
+document.addEventListener('error', e => {
+  const img = e.target;
+  if (img && img.tagName === 'IMG' && !img.dataset.fb && img.getAttribute('src') && !/^(https?:|data:)/.test(img.getAttribute('src'))) {
+    img.dataset.fb = '1'; img.src = ASSET_FALLBACK + img.getAttribute('src');
+  }
+}, true);
 const venueFor = day => VENUES[((day % VENUES.length) + VENUES.length) % VENUES.length];
 const dailySeed = day => hash(day, 0xBA17);
 function windFor(seed) { const r = mulberry32(seed ^ 0x51ED); const a = r() * 6.283, s = r(); return { x: Math.cos(a) * s, y: Math.sin(a) * s, a, s }; }

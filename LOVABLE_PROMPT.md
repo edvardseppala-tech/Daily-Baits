@@ -10,11 +10,11 @@ Two problems on the home screen. First, a "Seroval caught an error during the pa
 
 1. Fix the Seroval error. One of the server functions (createServerFn) is being given, or is returning, something that can't be serialized: a raw Stripe or Supabase object, an Error, a Date, a class instance, a Map/Set, or an object with functions in it. Find every server function the game screen calls (entitlements, displayPrices, getPlayer/profile, leaderboard, customization, submitScore) and make sure each one:
    - receives only plain JSON as input: numbers, strings, booleans, plain objects and arrays (pass the day as a number, never the whole score or event object unless it's plain JSON),
-   - returns only plain JSON in exactly the shapes in src/lib/daily-baits-api.ts: copy the fields you need out of Stripe/Supabase objects, turn dates into ISO strings, and never return an Error. Return { ok: false, reason } or throw new Error("short message") instead.
+   - returns only plain JSON in exactly the shapes in the contract (https://raw.githubusercontent.com/edvardseppala-tech/Daily-Baits/main/src/lib/daily-baits-api.ts: fetch it and keep a copy at src/lib/daily-baits-api.ts): copy the fields you need out of Stripe/Supabase objects, turn dates into ISO strings, and never return an Error. Return { ok: false, reason } or throw new Error("short message") instead.
    - catches its own errors, so a failure becomes a short friendly message and not a serialization crash.
    Then check the browser console and network tab on a fresh load, signed out and signed in, and confirm no server function fails.
 2. Remove the floating "Profile" button, and don't add any other buttons or overlays on top of the game. The game already has its own tab bar (Fish / Board / Book / You), a "Go Pro" button and a burger menu with the profile, sign-in, Pro, re-fish and colour pages. The website shell should only show the game full screen, plus the Stripe checkout overlay when buy() is called.
-3. Make sure the project's GitHub sync is on and pushing to edvardseppala-tech/Daily-Baits on the main branch, so your changes show up there.
+3. Keep loading the game live from edvardseppala-tech/Daily-Baits main as you do now. Also serve /assets/venue-lake.webp, venue-river.webp, venue-coast.webp and venue-ice.svg from this project (copy them from https://raw.githubusercontent.com/edvardseppala-tech/Daily-Baits/main/public/assets/). The game falls back to GitHub if one is missing.
 
 The membership is now shown to players as "Daily Baits Pro" (button "Go Pro"). Keep the Stripe lookup keys club_monthly / club_yearly and the tier value "club" in code exactly as they are. Only the words players see change: say "Pro" instead of "Club" on any page you've made.
 ```
@@ -22,7 +22,7 @@ The membership is now shown to players as "Daily Baits Pro" (button "Go Pro"). K
 ## Prompt 1: Accounts
 
 ```text
-Daily Baits is a daily fishing game. The game is public/dailybaits.html and is shown full screen by src/GameFrame.tsx. Never edit, rewrite or restyle the game file. The game already draws its own sign-in sheet, profile, tab bar, burger menu, Go Pro / re-fish / colour pages and leaderboard. Never add buttons or overlays on top of it. Your job is to give it real data through window.dailyBaitsApi. The exact contract, with types, is in src/lib/daily-baits-api.ts. Read it first and follow it exactly.
+Daily Baits is a daily fishing game. The game is public/dailybaits.html and is shown full screen by src/GameFrame.tsx. Never edit, rewrite or restyle the game file. The game already draws its own sign-in sheet, profile, tab bar, burger menu, Go Pro / re-fish / colour pages and leaderboard. Never add buttons or overlays on top of it. Your job is to give it real data through window.dailyBaitsApi. The exact contract, with types, is at https://raw.githubusercontent.com/edvardseppala-tech/Daily-Baits/main/src/lib/daily-baits-api.ts. Fetch it, save a copy in this project as src/lib/daily-baits-api.ts, and follow it exactly. When the game repo changes the contract, I'll tell you to fetch it again.
 
 Use Lovable Cloud (Supabase) for accounts:
 - Email + password, password reset, Google sign-in and Apple sign-in. The game's sign-in sheet puts "Continue with Apple" and "Continue with Google" at the top, so both providers must really work: set them up in Lovable Cloud auth (Apple needs an Apple Developer Services ID and key; Google needs an OAuth client). signInWithProvider should resolve only once the player is signed in, or throw if they cancel.
@@ -37,7 +37,7 @@ Use Lovable Cloud (Supabase) for accounts:
 ## Prompt 2: Scores, leaderboard and re-fish
 
 ```text
-Add scores and the leaderboard behind window.dailyBaitsApi (see src/lib/daily-baits-api.ts).
+Add scores and the leaderboard behind window.dailyBaitsApi (see src/lib/daily-baits-api.ts, copied from https://raw.githubusercontent.com/edvardseppala-tech/Daily-Baits/main/src/lib/daily-baits-api.ts).
 
 Tables (row level security on everywhere; the browser may read only its own rows and the public leaderboard, and may never write scores or tokens directly):
 - daily_scores: user_id, day (int), venue, pts (int), kg (numeric), casts (int), log (jsonb), attempts (int, default 1), created_at, updated_at. Unique (user_id, day).
@@ -56,7 +56,7 @@ Server functions (service role, signed-in user only):
 ## Prompt 3: Stripe payments (Daily Baits account)
 
 ```text
-Add Stripe payments. Use the Daily Baits Stripe account. It is in the same Stripe organisation as Daily Holes but is a separate account, so use only its keys. Use test mode first. The products are listed in docs/STRIPE_SETUP.md, and the code always looks prices up by lookup key: refish_single, refish_pack3, custom_bobber, custom_line, custom_pair, club_monthly, club_yearly.
+Add Stripe payments. Use the Daily Baits Stripe account. It is in the same Stripe organisation as Daily Holes but is a separate account, so use only its keys. Use test mode first. The products are listed at https://raw.githubusercontent.com/edvardseppala-tech/Daily-Baits/main/docs/STRIPE_SETUP.md, and the code always looks prices up by lookup key: refish_single, refish_pack3, custom_bobber, custom_line, custom_pair, club_monthly, club_yearly.
 
 Tables (row level security on, server-only writes):
 - subscriptions: user_id, stripe_customer_id, stripe_subscription_id (unique), lookup_key, status, current_period_end, cancel_at_period_end, environment, updated_at.
