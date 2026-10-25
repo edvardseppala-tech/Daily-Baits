@@ -31,19 +31,21 @@ button{font-family:inherit;color:inherit}
 
 /* ================= HOME (mirrors the Daily Holes start sheet) ================= */
 #home{position:relative;display:flex;flex-direction:column;padding:72px 22px calc(24px + env(safe-area-inset-bottom));background:#fff;min-height:100dvh}
-.streakBadge{position:absolute;top:18px;left:18px;z-index:3;display:inline-flex;align-items:center;gap:7px;height:42px;padding:0 13px;border-radius:12px;
-  border:1px solid var(--line-soft);background:#fff;font-family:var(--mono);font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--dim)}
-.streakBadge b{font-family:var(--sans);font-variation-settings:'wdth' 98,'wght' 700;font-size:14px;letter-spacing:0;color:var(--flag)}
 .topTools{position:absolute;top:18px;right:18px;z-index:3;display:flex;gap:6px}
-.homeBrand{position:absolute;top:18px;left:50%;transform:translateX(-50%);z-index:3;height:42px;display:flex;align-items:center;gap:7px;white-space:nowrap;
+.homeBrand{position:absolute;top:18px;left:20px;z-index:3;height:42px;display:flex;align-items:center;gap:7px;white-space:nowrap;
   font-size:21px;font-variation-settings:'wdth' 84,'wght' 780;letter-spacing:-.01em;color:var(--chalk)}
 .homeBrand em{font-style:normal;color:var(--flag)}
 .homeBrand svg{width:20px;height:20px;fill:none;stroke:var(--flag);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .topSignIn{height:42px;padding:0 14px;border-radius:12px;border:0;background:var(--flag);color:#fff;font-weight:700;font-size:13.5px;cursor:pointer;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
 .topSignIn.me{background:#fff;color:var(--flag);border:1px solid var(--line-soft)}
 .topSignIn[hidden],.topTool[hidden]{display:none}
-@media(max-width:380px){.homeBrand svg{display:none}.homeBrand{font-size:19px}}
+@media(max-width:360px){.homeBrand svg{display:none}}
 .topSignIn .ini{display:none}
+.topSignIn.member{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:0 14px 0 11px;font-size:13px;font-weight:600;max-width:none}
+.topSignIn.member svg{width:16px;height:16px;flex:none}
+.topSignIn.member.free{background:#C9A24A;color:#3A2A06;border:0;box-shadow:0 4px 14px rgba(160,120,30,.32)}
+.topSignIn.member.club{background:#FFF4D9;color:#7A5810;border:1px solid #E6C77E;box-shadow:none}
+@media(max-width:360px){.topSignIn.member.free{padding:0 11px 0 9px;font-size:12px}}
 @media(max-width:480px){.topSignIn.me{width:42px;padding:0;border-radius:50%;font-size:16px;font-weight:800}.topSignIn.me .nm{display:none}.topSignIn.me .ini{display:inline}}
 .topTool{width:42px;height:42px;border:1px solid var(--line-soft);border-radius:12px;background:#fff;color:var(--flag);display:grid;place-items:center;cursor:pointer;padding:0}
 .topTool svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -283,7 +285,6 @@ button{font-family:inherit;color:inherit}
 
 <!-- ============================ HOME ============================ -->
 <section class="screen" id="home">
-  <div class="streakBadge" id="streakBadge" title="Day streak">🔥 <b id="streakNum">0</b></div>
   <div class="homeBrand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-4.5 7.5-5.5 12-3l4-3v12l-4-3c-4.5 2.5-9 1.5-12-3Z"/><circle cx="7.5" cy="11.2" r=".6"/></svg>Daily <em>Baits</em></div>
   <div class="topTools">
     <button class="topSignIn" id="tSignIn" hidden>Sign in</button>
@@ -2033,10 +2034,9 @@ function renderHome() {
   $('#motifImg').src = v.img; $('#todayThumb').src = v.img;
   $('#todayWhat').textContent = `Today: ${v.name}`;
   $('#todayWhere').textContent = `${v.mood.split(' · ')[0]} · wind ${windArrow(w)} ${Math.round(w.s * 9)} m/s`;
-  const s = streak(); $('#streakNum').textContent = s;
+  const s = streak();
   const h = host(), me = player();
-  $('#tSignIn').hidden = !canAuth();
-  $('#tSignIn').innerHTML = me ? `<span class="nm">${esc(me.name)}</span><span class="ini">${esc((me.name[0] || '?').toUpperCase())}</span>` : 'Sign in'; $('#tSignIn').classList.toggle('me', !!me);
+  renderTopButton();
   $('#whoLine').textContent = (me ? 'Playing as ' + me.name : 'Playing as a guest') + ' · Daily Baits';
   $('#startChip').hidden = !s; $('#startChipN').textContent = s;
   if (saved && saved.refish && saved.log.length < CASTS) { $('#startTxt').textContent = 'Re-fish today'; $('#startSub').textContent = `${CASTS - saved.log.length} casts left · best so far ${history[day] ? history[day].pts : 0} pts`; }
@@ -2059,7 +2059,23 @@ $('#hPractice').onclick = showPractice;
 $('#hBook').onclick = showBook;
 const openBoard = () => showBoard();
 $('#hBoard').onclick = openBoard;
-$('#tSignIn').onclick = () => player() ? showYou() : showAuth('signin');
+// Top right: "Sign in" for guests; once signed in, the membership button (as in Daily Holes):
+// an invitation for free players, a quiet acknowledgement for members.
+const CROWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6l4 6l5-4l-2 10H5L3 8l5 4z"/></svg>';
+function renderTopButton() {
+  const b = $('#tSignIn'), me = player();
+  b.hidden = !canAuth();
+  if (me && canBuy()) {
+    const club = isClub();
+    b.innerHTML = CROWN + (club ? 'Member' : 'Join the Club');
+    b.className = 'topSignIn member ' + (club ? 'club' : 'free');
+    b.title = club ? 'Your Club membership' : 'Join the Club'; b.setAttribute('aria-label', b.title);
+  } else if (me) {
+    b.innerHTML = `<span class="nm">${esc(me.name)}</span><span class="ini">${esc((me.name[0] || '?').toUpperCase())}</span>`;
+    b.className = 'topSignIn me'; b.title = 'Your profile'; b.setAttribute('aria-label', b.title);
+  } else { b.textContent = 'Sign in'; b.className = 'topSignIn'; b.title = 'Sign in'; b.setAttribute('aria-label', b.title); }
+}
+$('#tSignIn').onclick = () => !player() ? showAuth('signin') : canBuy() ? showShop('club') : showYou();
 $('#burgerBtn').onclick = showMenu;
 $('#hHow').onclick = showHow;
 // Tab bar: each tab opens its sheet; closing the sheet returns to Fish.
