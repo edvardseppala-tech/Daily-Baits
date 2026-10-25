@@ -115,6 +115,7 @@ button{font-family:inherit;color:inherit}
 .toast .tx b{display:block;font-size:16px;font-variation-settings:'wght' 650;line-height:1.2}
 .toast .tx small{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
 .toast .pt{font-family:var(--mono);font-size:14px;color:var(--flag);white-space:nowrap}
+.newTag.pb{background:#C98A1B}
 .newTag{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.14em;background:var(--flag);color:#fff;border-radius:99px;padding:1px 6px;margin-left:6px;vertical-align:2px}
 .meter,.reel{padding:10px 12px 12px;display:none}
 .meter.on,.reel.on{display:block}
@@ -161,6 +162,7 @@ button{font-family:inherit;color:inherit}
 .card.unk b{color:var(--dimmer)}
 .chip{display:inline-block;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;border-radius:99px;padding:1px 7px;color:#fff;margin-top:4px}
 .bigScore{display:flex;gap:8px}
+.bigScore[hidden]{display:none}
 .bigScore div{flex:1;background:var(--ink2);border:1px solid var(--line-soft);border-radius:14px;padding:10px 12px}
 .bigScore span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)}
 .bigScore b{display:block;font-size:28px;font-variation-settings:'wdth' 78,'wght' 760;line-height:1.1}
@@ -212,7 +214,7 @@ button{font-family:inherit;color:inherit}
       <span class="pChip" id="startChip" hidden>🔥 <b id="startChipN">0</b></span></button>
   </div>
   <div class="homeTiles">
-    <button class="hTile" id="hPractice"><span class="bIco"><svg viewBox="0 0 24 24"><path d="M5 19 18 6"/><path d="M18 6v5"/><path d="M14 19a2 2 0 1 0 0-.1"/></svg></span><span class="bTxt">Practice</span><small>Any water, any time</small></button>
+    <button class="hTile" id="hPractice"><span class="bIco"><svg viewBox="0 0 24 24"><path d="M5 19 18 6"/><path d="M18 6v5"/><path d="M14 19a2 2 0 1 0 0-.1"/></svg></span><span class="bTxt">Explore</span><small id="hExploreSub">Unranked · 30 casts a day</small></button>
     <button class="hTile" id="hBook"><span class="bIco"><svg viewBox="0 0 24 24"><path d="M4 5.5C6.5 4.3 9 4.3 11.5 5.5v13C9 17.3 6.5 17.3 4 18.5Z"/><path d="M20 5.5c-2.5-1.2-5-1.2-7.5 0v13c2.5-1.2 5-1.2 7.5 0Z"/></svg></span><span class="bTxt">Handbook</span><small id="hBookSub">0 of 40 species</small></button>
     <button class="hTile gold" id="hBoard"><span class="bIco"><svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0Z"/><path d="M8 6H5a3 3 0 0 0 3 4"/><path d="M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4"/><path d="M8.5 20h7"/></svg></span><span class="bTxt">Leaderboard</span><small>Chase Master Baiter</small></button>
     <button class="hTile" id="hHow"><span class="bIco"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.5"/><path d="M12 16.8v.2"/></svg></span><span class="bTxt">How to fish</span><small>Cast, strike, reel</small></button>
@@ -230,9 +232,9 @@ button{font-family:inherit;color:inherit}
     <button class="iconBtn" id="bookBtn">Book<i id="bookCount">0</i></button>
   </header>
   <div class="hudRow">
-    <div><span>Cast</span><b id="hCast">1<small>/10</small></b></div>
+    <div><span id="lCast">Cast</span><b id="hCast">1<small>/10</small></b></div>
     <div><span>Bag</span><b id="hBag">0.0<small> kg</small></b></div>
-    <div><span>Points</span><b id="hPts">0</b></div>
+    <div><span id="lPts">Points</span><b id="hPts">0</b></div>
     <div><span>Wind</span><b id="hWind">—</b></div>
   </div>
   <div class="stage" id="stage">
@@ -272,6 +274,9 @@ button{font-family:inherit;color:inherit}
    CORE DATA
    ===================================================================== */
 const CASTS = 10, RANGE = 330;
+// Explore is unranked and open-ended, but capped: one daily pool of casts shared by every water,
+// so the handbook is earned over days rather than ground out in one sitting.
+const EXPLORE_CASTS = 30;
 const BANDS = ['Shallow', 'Mid', 'Deep'];
 const TIERS = [
   { k: 'Common',    m: 1,   c: '#7E8C83', w: 52,  sq: '⬜' },
@@ -514,6 +519,9 @@ const store = {
 };
 let book = store.get('book', {});
 let history = store.get('history', {});
+let records = store.get('records', {});   // { biggest: {sp, w}, best: {sp, pts} }
+const exploreUsed = () => store.get('explore.' + dayNumber(), 0);
+const exploreLeft = () => Math.max(0, EXPLORE_CASTS - exploreUsed());
 
 /* =====================================================================
    FISH MODELS — detailed side-view drawings, nose to the right
@@ -1145,6 +1153,7 @@ let G = null, dpr = 1;
 const cam = { x: 0, y: 0, vs: 1, goal: null };
 
 function startGame(practice, venueId) {
+  if (practice && exploreLeft() <= 0) { showExploreDone(); return; }
   showScreen('game');
   $('#loading').hidden = false;
   setTimeout(() => newGame(practice, venueId), 30);   // let the loading veil paint first
@@ -1155,14 +1164,14 @@ function newGame(practice, venueId) {
   const venue = practice ? (VENUES.find(v => v.id === venueId) || pick(Math.random, VENUES)) : venueFor(day);
   const world = makeWorld(seed, venue);
   renderBase(world);
-  G = { day, practice, seed, venue, world, cast: 0, log: [], lure: 1, target: null, state: 'aim', t: 0, st: 0, bob: null, hooked: null, reel: null, splash: [], parts: [] };
+  G = { day, practice, seed, venue, world, cast: 0, newCount: 0, pbCount: 0, log: [], lure: 1, target: null, state: 'aim', t: 0, st: 0, bob: null, hooked: null, reel: null, splash: [], parts: [] };
   if (!practice) {
     const saved = store.get('run.' + day, null);
     if (saved && saved.seed === seed) { G.log = saved.log; G.cast = saved.log.length; for (const e of G.log) if (e.fi != null && world.fish[e.fi]) world.fish[e.fi].caught = true; }
   }
   resize(); homeCam(true); initParticles();
   buildLures(); updateHud();
-  $('#sub').textContent = (practice ? 'Practice' : '#' + day) + ' · ' + venue.name;
+  $('#sub').textContent = (practice ? 'Explore · unranked' : '#' + day) + ' · ' + venue.name;
   $('#castBtn').disabled = false; $('#castBtn').textContent = 'Cast';
   $('#loading').hidden = true;
   hideToast();
@@ -1178,9 +1187,14 @@ const ARROWS = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'];
 const windArrow = w => ARROWS[Math.round(((w.a % 6.283) + 6.283) % 6.283 / (6.283 / 8)) % 8];
 function updateHud() {
   const t = totals(), w = G.world.wind;
-  $('#hCast').innerHTML = Math.min(G.cast + 1, CASTS) + '<small>/' + CASTS + '</small>';
+  if (G.practice) {
+    $('#lCast').textContent = 'Casts left'; $('#hCast').innerHTML = exploreLeft() + '<small>/' + EXPLORE_CASTS + '</small>';
+    $('#lPts').textContent = 'New · PB'; $('#hPts').innerHTML = G.newCount + '<small> · ' + G.pbCount + '</small>';
+  } else {
+    $('#lCast').textContent = 'Cast'; $('#hCast').innerHTML = Math.min(G.cast + 1, CASTS) + '<small>/' + CASTS + '</small>';
+    $('#lPts').textContent = 'Points'; $('#hPts').textContent = t.pts;
+  }
   $('#hBag').innerHTML = t.kg.toFixed(1) + '<small> kg</small>';
-  $('#hPts').textContent = t.pts;
   $('#hWind').innerHTML = windArrow(w) + ' ' + Math.round(w.s * 9) + '<small> m/s</small>';
   $('#bookCount').textContent = Object.keys(book).length;
 }
@@ -1495,31 +1509,37 @@ function endReel(how) {
   if (how === 'escape') { f.spooked = 1; return endCast({ res: 'miss', why: 'It shook free and swam off.' }); }
   f.caught = true;
   const trophy = f.ratio > .85, pts = Math.round((10 + 90 * f.ratio) * TIERS[f.tier].m * (trophy ? 1.25 : 1)), isNew = !book[f.sp.id];
-  const b = book[f.sp.id] || { n: 0, best: 0, bestPts: 0 }; b.n++; b.best = Math.max(b.best, f.w); b.bestPts = Math.max(b.bestPts, pts);
+  const b = book[f.sp.id] || { n: 0, best: 0, bestPts: 0 }, isPB = !isNew && f.w > b.best;
+  b.n++; b.best = Math.max(b.best, f.w); b.bestPts = Math.max(b.bestPts, pts);
   book[f.sp.id] = b; store.set('book', book);
-  endCast({ res: 'catch', sp: f.sp.id, tier: f.tier, w: f.w, pts, trophy, fi: f.i, x: G.bob.x, y: G.bob.y, isNew });
+  if (!records.biggest || f.w > records.biggest.w) records.biggest = { sp: f.sp.id, w: f.w };
+  if (!records.best || pts > records.best.pts) records.best = { sp: f.sp.id, pts };
+  store.set('records', records);
+  if (isNew) G.newCount++; if (isPB) G.pbCount++;
+  endCast({ res: 'catch', sp: f.sp.id, tier: f.tier, w: f.w, pts, trophy, fi: f.i, x: G.bob.x, y: G.bob.y, isNew, isPB });
   haptic([30, 40, 60]);
 }
 function endCast(e) {
   $('#banner').classList.remove('on'); $('#meter').classList.remove('on'); $('#reel').classList.remove('on');
   G.log.push(e); G.cast++; saveRun();
+  if (G.practice) store.set('explore.' + G.day, exploreUsed() + 1);
   G.state = 'toast'; G.st = 0; G.hooked = null;
   showToast(e); updateHud();
   $('#castBtn').textContent = 'Cast'; $('#castBtn').disabled = true;
 }
 function nextCast() {
   hideToast(); G.bob = null; G.target = null; $('#castBtn').disabled = false; $('#castBtn').textContent = 'Cast';
-  if (G.cast >= CASTS) { G.state = 'done'; finishDay(); return; }
+  if (G.practice ? exploreLeft() <= 0 : G.cast >= CASTS) { G.state = 'done'; finishDay(); return; }
   G.state = 'aim'; setHint('Tap the water to aim · drag to look around');
 }
 function showToast(e) {
   const el = $('#toast');
   if (e.res === 'catch') {
     const sp = spById(e.sp), T = TIERS[e.tier];
-    el.innerHTML = `<canvas></canvas><div class="tx"><b>${sp.name}${e.isNew ? '<span class="newTag">NEW</span>' : ''}</b><small style="color:${T.c}">${T.k}${e.trophy ? ' · Trophy' : ''} · ${e.w.toFixed(2)} kg</small></div><div class="pt">+${e.pts}</div>`;
+    el.innerHTML = `<canvas></canvas><div class="tx"><b>${sp.name}${e.isNew ? '<span class="newTag">NEW</span>' : ''}${e.isPB ? '<span class="newTag pb">PB</span>' : ''}</b><small style="color:${T.c}">${T.k}${e.trophy ? ' · Trophy' : ''} · ${e.w.toFixed(2)} kg</small></div><div class="pt">${G.practice ? (e.isPB ? 'Best!' : '') : '+' + e.pts}</div>`;
     el.classList.add('on'); paintFishCanvas(el.querySelector('canvas'), sp);
     G.toastHold = 3;
-  } else { el.innerHTML = `<div class="tx"><b>${e.why}</b><small>Cast ${G.cast} of ${CASTS}</small></div>`; el.classList.add('on'); G.toastHold = 2.1; }
+  } else { el.innerHTML = `<div class="tx"><b>${e.why}</b><small>${G.practice ? exploreLeft() + ' explore casts left today' : 'Cast ' + G.cast + ' of ' + CASTS}</small></div>`; el.classList.add('on'); G.toastHold = 2.1; }
 }
 function hideToast() { $('#toast').classList.remove('on'); }
 
@@ -1561,7 +1581,7 @@ function finishDay() {
     history[G.day] = { pts: t.pts, kg: Math.round(t.kg * 100) / 100, venue: G.venue.id }; store.set('history', history);
     try { window.parent.dailyBaitsApi?.submitScore?.({ day: G.day, pts: t.pts, kg: t.kg, log: G.log }); } catch {}
   }
-  setHint(G.practice ? 'Practice over' : 'Done for today. New water tomorrow.');
+  setHint(G.practice ? 'Out of explore casts. More tomorrow.' : 'Done for today. New water tomorrow.');
   $('#castBtn').disabled = true; showResults();
 }
 function shareText() { const t = totals(); return `Daily Baits #${G.day} · ${G.venue.name}\n🎣 ${t.pts} pts · ${t.kg.toFixed(1)} kg\n${G.log.map(e => e.res === 'catch' ? TIERS[e.tier].sq : '▫️').join('')}`; }
@@ -1571,13 +1591,18 @@ function showResults() {
   const rows = G.log.map((e, i) => {
     if (e.res !== 'catch') return `<div class="row"><span class="n">${i + 1}</span><span class="dot" style="background:var(--line)"></span><span class="nm" style="color:var(--dim)">${e.why}</span></div>`;
     const sp = spById(e.sp);
-    return `<div class="row"><span class="n">${i + 1}</span><span class="dot" style="background:${TIERS[e.tier].c}"></span><span class="nm">${sp.name}<small>${e.w.toFixed(2)} kg${e.trophy ? ' · TROPHY' : ''}</small></span><span class="v">+${e.pts}</span></div>`;
+    return `<div class="row"><span class="n">${i + 1}</span><span class="dot" style="background:${TIERS[e.tier].c}"></span><span class="nm">${sp.name}<small>${e.w.toFixed(2)} kg${e.trophy ? ' · TROPHY' : ''}</small></span><span class="v">${e.isNew ? 'NEW' : e.isPB ? 'PB' : G.practice ? '' : '+' + e.pts}</span></div>`;
   }).join('');
-  openSheet(`<div class="panelHead"><h2>${G.practice ? 'Practice' : 'Today’s bag'}</h2><button class="close">✕</button></div>
-    <div class="bigScore"><div><span>Points</span><b>${t.pts}</b></div><div><span>Weight</span><b>${t.kg.toFixed(1)}<small style="font-size:13px"> kg</small></b></div>
+  const caught = G.log.filter(e => e.res === 'catch').length;
+  const head = G.practice
+    ? `<div class="bigScore"><div><span>New species</span><b>${G.newCount}</b></div><div><span>Personal bests</span><b>${G.pbCount}</b></div><div><span>Caught</span><b>${caught}<small style="font-size:13px">/${G.log.length}</small></b></div></div>
+       <p class="note">Unranked. ${exploreLeft() ? exploreLeft() + ' explore casts left today.' : 'That was the last of today’s explore casts. More tomorrow.'}</p>`
+    : '';
+  openSheet(`<div class="panelHead"><h2>${G.practice ? 'Exploration' : 'Today’s bag'}</h2><button class="close">✕</button></div>${head}
+    <div class="bigScore"${G.practice ? ' hidden' : ''}><div><span>Points</span><b>${t.pts}</b></div><div><span>Weight</span><b>${t.kg.toFixed(1)}<small style="font-size:13px"> kg</small></b></div>
     <div><span>Caught</span><b>${G.log.filter(e => e.res === 'catch').length}<small style="font-size:13px">/${CASTS}</small></b></div></div>
     <div class="secHead">Casts</div><div class="rows">${rows}</div>
-    <div class="btnRow">${G.practice ? '' : '<button class="p" id="shareBtn">Share</button>'}<button class="s" id="practiceBtn">Practice</button><button class="s" id="homeBtn">Home</button></div>`);
+    <div class="btnRow">${G.practice ? '' : '<button class="p" id="shareBtn">Share</button>'}<button class="s" id="practiceBtn">${G.practice ? 'Other water' : 'Explore'}</button><button class="s" id="homeBtn">Home</button></div>`);
   const sb = $('#shareBtn');
   if (sb) sb.onclick = async () => { const txt = shareText(); try { if (navigator.share) await navigator.share({ text: txt }); else { await navigator.clipboard.writeText(txt); sb.textContent = 'Copied'; } } catch {} };
   $('#practiceBtn').onclick = () => { closeSheet(); showPractice(); };
@@ -1605,6 +1630,7 @@ function showBook() {
   }).join('');
   openSheet(`<div class="panelHead"><h2>Handbook</h2><button class="close">✕</button></div>
     <p class="note" style="margin-top:0">${found} of ${ALL_SPECIES.length} species discovered. Catching a species once reveals its depth, cover and favourite lure.</p>
+    ${records.biggest ? `<div class="bigScore" style="margin-bottom:10px"><div><span>Biggest fish</span><b style="font-size:18px">${spById(records.biggest.sp).name}</b><span>${records.biggest.w.toFixed(2)} kg</span></div><div><span>Best catch</span><b style="font-size:18px">${spById(records.best.sp).name}</b><span>${records.best.pts} pts</span></div></div>` : ''}
     <div class="tabs">${tabs}</div><div class="book">${cards}</div>`);
   document.querySelectorAll('.tab').forEach(b => b.onclick = () => { bookVenue = b.dataset.v; showBook(); });
   requestAnimationFrame(() => document.querySelectorAll('.card canvas').forEach(c => paintFishCanvas(c, spById(c.dataset.sp), c.dataset.flat ? '#CCD5D0' : null)));
@@ -1612,6 +1638,7 @@ function showBook() {
 function showHow() {
   openSheet(`<div class="panelHead"><h2>How to fish</h2><button class="close">✕</button></div>
     <div class="howto"><ol>
+      <li><b>Explore.</b> Outside the daily water you can explore any water unranked, ${EXPLORE_CASTS} casts a day, to chase personal bests and fill the handbook.</li>
       <li><b>Look around.</b> Drag to pan, pinch or scroll to zoom. ◎ takes you back to the pier.</li>
       <li><b>Read the water.</b> Lighter water is shallow and darker is deep. Hover or tap to check depth and cover (weed, rocks and logs, or open water).</li>
       <li><b>Watch the shadows.</b> Every shadow is a fish, but its shape only hints at what it is. Bigger shadows tend to be bigger fish.</li>
@@ -1622,9 +1649,16 @@ function showHow() {
     </ol>
     <p class="note">10 casts a day, and everyone fishes the same water. Points scale with size and rarity, from Common ×1 up to Legendary ×9.</p></div>`);
 }
+function showExploreDone() {
+  openSheet(`<div class="panelHead"><h2>Explore</h2><button class="close">✕</button></div>
+    <p class="note" style="margin-top:0">You have used all ${EXPLORE_CASTS} explore casts for today. They refill tomorrow, and today’s ranked water is still open on the home page.</p>
+    <div class="btnRow"><button class="s" id="bookGo">Open the handbook</button></div>`);
+  $('#bookGo').onclick = showBook;
+}
 function showPractice() {
-  openSheet(`<div class="panelHead"><h2>Practice</h2><button class="close">✕</button></div>
-    <p class="note" style="margin-top:0">A random day on any water. Practice catches count towards the handbook but not the leaderboard.</p>
+  if (exploreLeft() <= 0) return showExploreDone();
+  openSheet(`<div class="panelHead"><h2>Explore</h2><button class="close">✕</button></div>
+    <p class="note" style="margin-top:0">Unranked fishing on any water. Chase personal bests and discover new species for the handbook. <b>${exploreLeft()} of ${EXPLORE_CASTS}</b> explore casts left today, shared across all waters.</p>
     <div class="venueStrip" style="margin-top:10px">${VENUES.map(v => `<button class="vCard" data-v="${v.id}"><img src="${v.img}" alt=""><span class="t"><b>${v.name}</b><small>${v.mood}</small></span></button>`).join('')}</div>`);
   document.querySelectorAll('#panel .vCard').forEach(b => b.onclick = () => { closeSheet(); startGame(true, b.dataset.v); });
 }
@@ -1644,6 +1678,7 @@ function renderHome() {
   if (done) { $('#startTxt').textContent = 'See today’s bag'; $('#startSub').textContent = `${history[day].pts} points · new water tomorrow`; }
   else if (saved && saved.log && saved.log.length) { $('#startTxt').textContent = 'Keep fishing'; $('#startSub').textContent = `${CASTS - saved.log.length} casts left today`; }
   else { $('#startTxt').textContent = 'Fish today'; $('#startSub').textContent = '10 casts · about 4 minutes'; }
+  $('#hExploreSub').textContent = exploreLeft() ? `Unranked · ${exploreLeft()} casts left` : 'Out of casts · back tomorrow';
   $('#hBookSub').textContent = `${Object.keys(book).length} of ${ALL_SPECIES.length} species`;
   const labels = ['Today', 'Tomorrow', 'In 2 days', 'In 3 days'];
   $('#venueStrip').innerHTML = [0, 1, 2, 3].map(i => { const vv = venueFor(day + i); return `<button class="vCard" data-v="${vv.id}"><img src="${vv.img}" alt=""><span class="tag${i ? '' : ' today'}">${labels[i]}</span><span class="t"><b>${vv.name}</b><small>${vv.mood}</small></span></button>`; }).join('');
