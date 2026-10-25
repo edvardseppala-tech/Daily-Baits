@@ -1,0 +1,2 @@
+html, body, #root { margin: 0; height: 100%; background: #F3F6F2; color: #23342A; }
+body { font-family: Archivo, "Helvetica Neue", Arial, sans-serif; overscroll-behavior: none; }

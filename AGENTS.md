@@ -5,7 +5,12 @@ One seeded water a day, ten casts, shared by every player. The whole game is
 
 ## Working with Lovable
 
-This repo is meant to be connected to Lovable through GitHub, the same way as Daily Holes.
+This repo is connected to Lovable through GitHub (`edvardseppala-tech/Daily-Baits`, branch `main`).
+Commits pushed to `main` sync into the Lovable editor and deploy, so keep `main` working and never
+force-push or rewrite pushed history.
+
+The site is a minimal Vite + React shell: `src/GameFrame.tsx` shows the game full screen in an iframe,
+installs the bridge below, and shows a retry screen if the game fails to start.
 
 - **Lovable owns** the React shell, routes, styling, accounts, database schema and deploys.
 - **Claude Code owns** `public/dailybaits.html`: generation, fishing mechanics, rendering and fish models.

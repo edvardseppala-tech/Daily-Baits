@@ -13,7 +13,10 @@ The top score each day earns the **Master Baiter** tag.
 Native shells and backends talk to it through `window.parent.dailyBaitsApi` (`submitScore`, `haptic`).
 
 ## Run
-    python3 -m http.server 5180 -d public   # then open /dailybaits.html
+    npm install
+    npm run dev        # site shell on http://localhost:8080, game at /dailybaits.html
+
+Connected to Lovable via GitHub: `edvardseppala-tech/Daily-Baits`.
 
 ## Waters
 Still Lake, Fast River and Rocky Coast use the reference paintings in `public/assets/` for the home page.
