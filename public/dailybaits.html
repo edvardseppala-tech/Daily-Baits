@@ -1341,7 +1341,9 @@ async function buy(key, source) {
   try { await h.buy(key, source || 'shop'); } catch (e) { const el = $('#shopErr'); if (el) el.textContent = String(e?.message || e || 'That didn’t work. Try again.'); }
 }
 
-function haptic(ms) { try { const h = host(); if (h?.haptic) h.haptic(ms); else navigator.vibrate && navigator.vibrate(ms); } catch {} }
+// Browsers refuse vibration until the player has tapped, and log an error for every refused call.
+const mayVibrate = () => !navigator.userActivation || navigator.userActivation.hasBeenActive;
+function haptic(ms) { if (!mayVibrate()) return; try { const h = host(); if (h?.haptic) h.haptic(ms); else navigator.vibrate && navigator.vibrate(ms); } catch {} }
 const ARROWS = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'];
 const windArrow = w => ARROWS[Math.round(((w.a % 6.283) + 6.283) % 6.283 / (6.283 / 8)) % 8];
 function updateHud() {

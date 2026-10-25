@@ -22,7 +22,12 @@ export default function GameFrame({ src, title }: { src: string; title: string }
   useEffect(() => {
     window.dailyBaitsApi = {
       submitScore: (s) => console.info("[Daily Baits] score", s),
-      haptic: (ms) => { try { navigator.vibrate?.(ms); } catch { /* unsupported */ } },
+      haptic: (ms) => {
+        // Vibration is refused (with a console error) until the player has tapped the page or the game.
+        const act = (navigator as Navigator & { userActivation?: { hasBeenActive: boolean } }).userActivation;
+        if (act && !act.hasBeenActive) return;
+        try { navigator.vibrate?.(ms); } catch { /* unsupported */ }
+      },
     };
   }, []);
 
