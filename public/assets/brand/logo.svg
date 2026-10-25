@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="t">
+  <title id="t">Daily Baits</title>
+  <defs>
+    <clipPath id="tile"><rect width="512" height="512" rx="112"/></clipPath>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9DB9D2"/>
+      <stop offset="1" stop-color="#F6D9A8"/>
+    </linearGradient>
+    <linearGradient id="lake" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6F9BBC"/>
+      <stop offset="1" stop-color="#3F6F93"/>
+    </linearGradient>
+  </defs>
+  <g clip-path="url(#tile)">
+    <!-- dusk sky and the low sun, as in the Still Lake painting -->
+    <rect width="512" height="300" fill="url(#sky)"/>
+    <circle cx="356" cy="132" r="40" fill="#F7B955"/>
+    <circle cx="356" cy="132" r="58" fill="#F7B955" opacity=".18"/>
+    <!-- far mountains and the pine shore -->
+    <path d="M0 252 L78 206 L132 232 L214 168 L292 230 L362 196 L432 226 L512 204 V300 H0 Z" fill="#8E93AE"/>
+    <path d="M0 300 V276 l12-20 12 20 10-16 10 16 14-26 14 26 10-14 10 14 V300 Z M392 300 V280 l12-24 12 24 10-18 10 18 14-30 14 30 10-16 10 16 14-24 14 24 V300 Z" fill="#2F5545"/>
+    <!-- the lake, with the sun's path on it -->
+    <rect y="300" width="512" height="212" fill="url(#lake)"/>
+    <g fill="#F7C978" opacity=".85">
+      <rect x="318" y="314" width="68" height="7" rx="3.5"/>
+      <rect x="330" y="334" width="44" height="6" rx="3"/>
+      <rect x="338" y="352" width="28" height="5" rx="2.5"/>
+    </g>
+    <!-- the pier, reaching out from the left shore -->
+    <g fill="#4E3B2A">
+      <rect x="36" y="392" width="13" height="70"/>
+      <rect x="112" y="392" width="13" height="70"/>
+      <rect x="188" y="392" width="13" height="70"/>
+      <rect x="250" y="392" width="13" height="58"/>
+    </g>
+    <g fill="#4E3B2A" opacity=".28">
+      <rect x="36" y="466" width="13" height="40"/>
+      <rect x="112" y="466" width="13" height="40"/>
+      <rect x="188" y="466" width="13" height="40"/>
+      <rect x="250" y="454" width="13" height="34"/>
+    </g>
+    <rect x="0" y="370" width="276" height="26" rx="4" fill="#A27B52"/>
+    <rect x="0" y="370" width="276" height="7" rx="3" fill="#C29A6B"/>
+    <!-- rod line from the end of the pier to the bobber -->
+    <path d="M262 370 L318 300" stroke="#2B2420" stroke-width="7" stroke-linecap="round"/>
+    <path d="M318 300 Q388 318 404 420" stroke="#F3F6F2" stroke-width="3" fill="none" stroke-linecap="round" opacity=".9"/>
+    <ellipse cx="404" cy="432" rx="34" ry="9" fill="none" stroke="#F3F6F2" stroke-width="3.5" opacity=".7"/>
+    <circle cx="404" cy="424" r="15" fill="#FFFFFF"/>
+    <path d="M389 424 a15 15 0 0 1 30 0 Z" fill="#C0492F"/>
+  </g>
+</svg>
