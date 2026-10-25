@@ -15,15 +15,16 @@ installs the bridge below, and shows a retry screen if the game fails to start.
 - **Lovable owns** the React shell, routes, styling, accounts, database schema and deploys.
 - **Claude Code owns** `public/dailybaits.html`: generation, fishing mechanics, rendering and fish models.
 - Do not edit the same file from both sides at once. Pull before working; push only working changes.
-- The shell shows the game in a full-height iframe at `/dailybaits.html`. Everything native to the
-  shell reaches the game through `window.parent.dailyBaitsApi` (all optional):
-  - `submitScore({ day, venue, seed, pts, kg, casts, log })` is called when a daily round ends (never for Explore).
-  - `haptic(ms)` is called for bites, surges and landings.
-  - `getPlayer()` returns `{ name }` or `null` (synchronous); the home screen shows the name or "Sign in".
-  - `openSignIn()`, `openProfile()`, `openLeaderboard()` navigate to the shell's pages. With no
-    `openLeaderboard`, the game falls back to its own local board.
-  - After auth changes the shell calls `iframe.contentWindow.dailyBaits.refresh()`.
+- The shell shows the game in a full-height iframe at `/dailybaits.html`. The game reaches the shell through
+  `window.parent.dailyBaitsApi`. The full contract, with types, is `src/lib/daily-baits-api.ts`: account,
+  scores and leaderboard, Club and purchases, customization, and site pages. Every member is optional,
+  and the game hides whatever is missing. After any auth or purchase change, the shell calls
+  `iframe.contentWindow.dailyBaits.refresh()`.
+- The game draws its own UI: the tab bar (Fish / Board / Book / You), burger menu, sign-in sheet, profile,
+  shop, leaderboard tabs and re-fish. The shell supplies the data and the Stripe checkout and portal.
 - If `window.__dbBootError` is set after the iframe loads, the game failed to start; show a retry screen.
 - Today's water depends only on the date (`dailySeed(day)`), so every player and the server see the
   same water. Changing generation replaces today's water for everyone.
-- No monetisation for now.
+- Payments: Stripe, in the separate **Daily Baits** Stripe account (same organisation as Daily Holes).
+  Products and lookup keys are listed in `docs/STRIPE_SETUP.md`: re-fish (1 or 3), custom bobber/line colours,
+  and the Daily Baits Club (monthly/yearly). Entitlements are decided on the server only.

@@ -43,7 +43,8 @@ button{font-family:inherit;color:inherit}
 .topSignIn.me{background:#fff;color:var(--flag);border:1px solid var(--line-soft)}
 .topSignIn[hidden],.topTool[hidden]{display:none}
 @media(max-width:380px){.homeBrand svg{display:none}.homeBrand{font-size:19px}}
-@media(max-width:480px){.topTools.withSign .topTool{display:none}.topSignIn{max-width:96px}}
+.topSignIn .ini{display:none}
+@media(max-width:480px){.topSignIn.me{width:42px;padding:0;border-radius:50%;font-size:16px;font-weight:800}.topSignIn.me .nm{display:none}.topSignIn.me .ini{display:inline}}
 .topTool{width:42px;height:42px;border:1px solid var(--line-soft);border-radius:12px;background:#fff;color:var(--flag);display:grid;place-items:center;cursor:pointer;padding:0}
 .topTool svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .menuMotif{position:relative;z-index:0;overflow:hidden;flex:none;width:calc(100% + 44px);margin:0 -22px 12px;height:min(max(56vw,300px),320px);background:#DCE8EE}
@@ -92,6 +93,70 @@ button{font-family:inherit;color:inherit}
 .vCard .tag{position:absolute;top:8px;left:8px;z-index:1;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;text-transform:uppercase;background:rgba(255,255,255,.92);color:var(--chalk);border-radius:99px;padding:2px 7px}
 .vCard .tag.today{background:var(--flag);color:#fff}
 .foot{font-family:var(--mono);font-size:10px;color:var(--dimmer);letter-spacing:.04em;margin-top:16px;text-align:center}
+
+/* ---- burger, tab bar, account, shop (mirrors Daily Holes) ---- */
+#home{padding-bottom:calc(96px + env(safe-area-inset-bottom))}
+.burgerBtn{width:42px;height:42px;border-radius:12px;border:1px solid var(--line-soft);background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;padding:0}
+.burgerBtn span{display:block;width:18px;height:2px;border-radius:2px;background:var(--flag)}
+.burgerBtn:active{transform:scale(.94)}
+.tabBar{position:fixed;left:50%;transform:translateX(-50%);bottom:0;width:100%;max-width:540px;z-index:9;display:flex;justify-content:space-around;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-top:1px solid var(--line);
+  padding:7px 10px calc(9px + env(safe-area-inset-bottom));box-shadow:0 -6px 18px rgba(35,52,42,.05)}
+.tabBar[hidden]{display:none}
+.tabBar button{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;gap:4px;border:0;background:none;
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dimmer);padding:2px 0;cursor:pointer}
+.tabBar .ic{width:58px;height:32px;border-radius:16px;display:grid;place-items:center;transition:background .2s}
+.tabBar svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabBar button[aria-selected="true"]{color:var(--flag)}
+.tabBar button[aria-selected="true"] .ic{background:rgba(31,122,76,.11)}
+.field{display:block;margin-top:10px}
+.field span{font-family:var(--mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim)}
+.field input{display:block;width:100%;margin-top:4px;height:46px;border-radius:10px;border:1px solid var(--line);background:#fff;padding:0 12px;
+  font:inherit;font-size:16px;color:var(--chalk);-webkit-user-select:text;user-select:text}
+.field input:focus{outline:2px solid rgba(31,122,76,.3);border-color:var(--flag)}
+.err{color:var(--warn);font-size:12.5px;margin-top:8px;min-height:17px}
+.ok{color:var(--flag);font-size:12.5px;margin-top:8px}
+.oauth{display:flex;gap:8px;margin-top:12px}
+.oauth button{flex:1;height:44px;border-radius:10px;border:1px solid var(--line);background:#fff;font-weight:600;cursor:pointer;font-size:14px}
+.sep{display:flex;align-items:center;gap:10px;margin:14px 0 2px;font-family:var(--mono);font-size:9px;letter-spacing:.14em;color:var(--dimmer);text-transform:uppercase}
+.sep::before,.sep::after{content:"";flex:1;height:1px;background:var(--line)}
+.linkBtn{background:none;border:0;color:var(--flag);font-weight:600;cursor:pointer;padding:0;font-size:13px;text-decoration:underline;font-family:inherit}
+.menuList{display:flex;flex-direction:column;background:#fff;border:1px solid var(--line-soft);border-radius:14px;overflow:hidden}
+.menuList button{display:flex;align-items:center;gap:12px;padding:13px 14px;border:0;border-top:1px solid var(--line-soft);background:none;text-align:left;font-size:15px;cursor:pointer;color:var(--chalk)}
+.menuList button:first-child{border-top:0}
+.menuList button small{margin-left:auto;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+.menuList svg{width:18px;height:18px;fill:none;stroke:var(--flag);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.shopCard{background:#fff;border:1px solid var(--line-soft);border-radius:16px;padding:14px;margin-top:10px}
+.shopCard.club{background:linear-gradient(135deg,#FFF7E6,#FFFDF7);border-color:#EBD9AC}
+.shopCard h3{margin:0;font-size:17px;font-variation-settings:'wdth' 90,'wght' 720}
+.shopCard p{margin:4px 0 0;font-size:13px;color:var(--dim)}
+.shopCard ul{margin:8px 0 0;padding-left:18px;font-size:13px;color:var(--chalk)}
+.shopCard li{margin:3px 0}
+.buyRow{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.buyRow button{flex:1 1 120px;min-height:46px;border-radius:12px;border:1px solid var(--flag);background:#fff;color:var(--flag);font-weight:700;cursor:pointer;padding:6px 10px;line-height:1.2;font-size:14px}
+.buyRow button.p{background:var(--flag);color:#fff}
+.buyRow button.gold{background:#C98A1B;border-color:#C98A1B;color:#fff}
+.buyRow button small{display:block;font-weight:400;font-size:11px;opacity:.85}
+.buyRow button:disabled{opacity:.45;cursor:default}
+.owned{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;color:var(--flag);text-transform:uppercase;margin-left:6px}
+.swatches{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.swatch{width:42px;height:42px;border-radius:12px;border:2px solid var(--line-soft);cursor:pointer;position:relative;padding:0;background:#fff;display:grid;place-items:center}
+.swatch.on{border-color:var(--flag);box-shadow:0 0 0 2px rgba(31,122,76,.15)}
+.swatch:disabled{cursor:default}
+.swatch i{width:20px;height:20px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.swatch .lock{position:absolute;right:-5px;top:-5px;font-family:var(--mono);font-size:7.5px;letter-spacing:.08em;background:#C98A1B;color:#fff;border-radius:99px;padding:1px 4px}
+.swatch input[type=color]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.clubPill{display:inline-block;font-family:var(--mono);font-size:8px;letter-spacing:.14em;text-transform:uppercase;background:#F7EBC8;color:#8D6413;border-radius:99px;padding:1px 6px;margin-left:6px;vertical-align:2px}
+.youHead{display:flex;align-items:center;gap:12px;background:#fff;border:1px solid var(--line-soft);border-radius:16px;padding:12px 14px}
+.avatar{width:46px;height:46px;border-radius:50%;background:#EEF5EF;color:var(--flag);display:grid;place-items:center;font-weight:800;font-size:19px;flex:none}
+.youHead b{display:block;font-size:17px;font-variation-settings:'wdth' 92,'wght' 720}
+.youHead small{font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+.statGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.statGrid div{background:#fff;border:1px solid var(--line-soft);border-radius:12px;padding:8px 10px}
+.statGrid span{display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase}
+.statGrid b{display:block;font-size:19px;font-variation-settings:'wdth' 82,'wght' 720}
+.danger{color:var(--warn)!important;border-color:#F0CFC6!important}
+.rows .gap{justify-content:center;color:var(--dimmer);font-family:var(--mono);font-size:10px;padding:4px}
 
 /* ================= GAME ================= */
 #game{display:flex;flex-direction:column;height:100dvh;padding:10px 16px calc(12px + env(safe-area-inset-bottom))}
@@ -221,9 +286,8 @@ button{font-family:inherit;color:inherit}
   <div class="streakBadge" id="streakBadge" title="Day streak">🔥 <b id="streakNum">0</b></div>
   <div class="homeBrand"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-4.5 7.5-5.5 12-3l4-3v12l-4-3c-4.5 2.5-9 1.5-12-3Z"/><circle cx="7.5" cy="11.2" r=".6"/></svg>Daily <em>Baits</em></div>
   <div class="topTools">
-    <button class="topTool" id="tBoard" aria-label="Leaderboard" title="Leaderboard"><svg viewBox="0 0 24 24"><path d="M6 20v-6"/><path d="M12 20V7"/><path d="M18 20v-9"/></svg></button>
-    <button class="topTool" id="tHow" aria-label="How to fish" title="How to fish"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.5"/><path d="M12 16.8v.2"/></svg></button>
     <button class="topSignIn" id="tSignIn" hidden>Sign in</button>
+    <button class="burgerBtn" id="burgerBtn" aria-label="Menu"><span></span><span></span><span></span></button>
   </div>
   <div class="menuMotif">
     <div class="motifHead">
@@ -252,6 +316,12 @@ button{font-family:inherit;color:inherit}
   <div class="venueStrip" id="venueStrip"></div>
   <div class="foot" id="whoLine">Playing as a guest · Daily Baits</div>
 </section>
+<nav class="tabBar" id="tabBar" role="tablist" aria-label="Sections">
+  <button type="button" role="tab" id="tabFish" aria-selected="true"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-4.5 7.5-5.5 12-3l4-3v12l-4-3c-4.5 2.5-9 1.5-12-3Z"/><circle cx="7.5" cy="11.2" r=".6"/></svg></span>Fish</button>
+  <button type="button" role="tab" id="tabBoard" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 20v-6"/><path d="M12 20V7"/><path d="M18 20v-9"/></svg></span>Board</button>
+  <button type="button" role="tab" id="tabBook" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5.5C6.5 4.3 9 4.3 11.5 5.5v13C9 17.3 6.5 17.3 4 18.5Z"/><path d="M20 5.5c-2.5-1.2-5-1.2-7.5 0v13c2.5-1.2 5-1.2 7.5 0Z"/></svg></span>Book</button>
+  <button type="button" role="tab" id="tabYou" aria-selected="false"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.5" r="3.4"/><path d="M5.5 20c.8-3.7 3.3-5.6 6.5-5.6s5.7 1.9 6.5 5.6"/></svg></span>You</button>
+</nav>
 
 <!-- ============================ GAME ============================ -->
 <section class="screen" id="game" hidden>
@@ -551,7 +621,8 @@ let book = store.get('book', {});
 let history = store.get('history', {});
 let records = store.get('records', {});   // { biggest: {sp, w}, best: {sp, pts} }
 const exploreUsed = () => store.get('explore.' + dayNumber(), 0);
-const exploreLeft = () => Math.max(0, EXPLORE_CASTS - exploreUsed());
+const exploreLeft = () => isClub() ? Infinity : Math.max(0, EXPLORE_CASTS - exploreUsed());
+const exploreText = () => isClub() ? 'Unlimited' : String(exploreLeft());
 
 /* =====================================================================
    FISH MODELS — detailed side-view drawings, nose to the right
@@ -1216,13 +1287,66 @@ function setHint(t) { $('#hint').textContent = t; }
 // with no shell the game falls back to its own local board and plays as a guest.
 const host = () => { try { return window.parent.dailyBaitsApi || null; } catch { return null; } };
 const player = () => { try { return host()?.getPlayer?.() || null; } catch { return null; } };   // { name } or null
+/* ---- Account, Club and purchases. The site shell owns accounts, Stripe and the database; the game
+   only asks for what it needs and shows it. With no shell everything stays free and local. ---- */
+let ACC = { tier: 'free', refishTokens: 0, clubRefishLeft: 0, refishArmed: false, owned: {} };
+let PRICES = null;
+const isClub = () => (player()?.tier || ACC.tier) === 'club';
+const owns = k => !!(ACC.owned && ACC.owned[k]);
+const canAuth = () => !!(host()?.signIn || host()?.openSignIn);
+const canBuy = () => !!host()?.buy;
+// Prices shown before Stripe answers, and when it cannot: the same euros as Daily Holes, VAT included.
+const FALLBACK_PRICES = { refish_single: 89, refish_pack3: 199, custom_bobber: 199, custom_line: 199, custom_pair: 299, club_monthly: 499, club_yearly: 3900 };
+function money(minor, cur, zero) {
+  const v = zero ? minor : minor / 100, d = zero || Number.isInteger(v) ? 0 : 2;
+  try { return new Intl.NumberFormat(undefined, { style: 'currency', currency: cur.toUpperCase(), minimumFractionDigits: d, maximumFractionDigits: d }).format(v); }
+  catch { return (d ? v.toFixed(2) : v) + ' ' + cur.toUpperCase(); }
+}
+function price(k) {
+  const live = PRICES && PRICES.amounts && typeof PRICES.amounts[k] === 'number';
+  return live ? money(PRICES.amounts[k], PRICES.currency, PRICES.zeroDecimal) : money(FALLBACK_PRICES[k], 'eur', false);
+}
+const BOBBERS = [
+  { id: 'classic', name: 'Classic', top: '#C0492F', base: '#FFFFFF' },
+  { id: 'pine',    name: 'Pine',    top: '#1F7A4C', base: '#F4F1E6', club: true },
+  { id: 'sunset',  name: 'Sunset',  top: '#E8833A', base: '#FFE6B0', club: true },
+  { id: 'ghost',   name: 'Ghost',   top: '#9FB8C8', base: '#FFFFFF', club: true },
+  { id: 'gold',    name: 'Gold',    top: '#C98A1B', base: '#FFF3C9', club: true },
+];
+const COLOURS = ['#C0492F', '#E8833A', '#E3B23C', '#1F7A4C', '#2E7FB0', '#7B5BC4', '#D45A9A', '#23342A', '#FFFFFF'];
+let CUST = Object.assign({ bobber: 'classic', bobberColor: null, lineColor: null }, store.get('cust', {}));
+function bobberLook() {
+  let b = BOBBERS.find(x => x.id === CUST.bobber) || BOBBERS[0];
+  if (b.club && !isClub()) b = BOBBERS[0];
+  return { top: CUST.bobberColor && owns('bobber') ? CUST.bobberColor : b.top, base: b.base };
+}
+const lineLook = () => CUST.lineColor && owns('line') ? CUST.lineColor : 'rgba(35,52,42,.6)';
+async function refreshAccount() {
+  const h = host(), me = player();
+  if (h) {
+    if (!me) ACC = { tier: 'free', refishTokens: 0, clubRefishLeft: 0, refishArmed: false, owned: {} };
+    else if (h.entitlements) { try { ACC = Object.assign({}, ACC, await h.entitlements(dayNumber())); } catch {} }
+    if (h.displayPrices && !PRICES) { try { PRICES = await h.displayPrices(); } catch {} }
+    if (me && h.customization) { try { const c = await h.customization(); if (c) { CUST = Object.assign(CUST, c); store.set('cust', CUST); } } catch {} }
+  }
+  if (!$('#home').hidden) renderHome();
+  if (G && !$('#game').hidden) updateHud();
+}
+function saveCust() { store.set('cust', CUST); try { player() && host()?.saveCustomization?.(CUST); } catch {} }
+async function buy(key, source) {
+  const h = host();
+  if (!h?.buy) return;
+  if (!player()) return showAuth('signin', () => buy(key, source));
+  try { await h.buy(key, source || 'shop'); } catch (e) { const el = $('#shopErr'); if (el) el.textContent = String(e?.message || e || 'That didn’t work. Try again.'); }
+}
+
 function haptic(ms) { try { const h = host(); if (h?.haptic) h.haptic(ms); else navigator.vibrate && navigator.vibrate(ms); } catch {} }
 const ARROWS = ['→', '↘', '↓', '↙', '←', '↖', '↑', '↗'];
 const windArrow = w => ARROWS[Math.round(((w.a % 6.283) + 6.283) % 6.283 / (6.283 / 8)) % 8];
 function updateHud() {
   const t = totals(), w = G.world.wind;
   if (G.practice) {
-    $('#lCast').textContent = 'Casts left'; $('#hCast').innerHTML = exploreLeft() + '<small>/' + EXPLORE_CASTS + '</small>';
+    $('#lCast').textContent = 'Casts left'; $('#hCast').innerHTML = isClub() ? '∞<small> club</small>' : exploreLeft() + '<small>/' + EXPLORE_CASTS + '</small>';
     $('#lPts').textContent = 'New · PB'; $('#hPts').innerHTML = G.newCount + '<small> · ' + G.pbCount + '</small>';
   } else {
     $('#lCast').textContent = 'Cast'; $('#hCast').innerHTML = Math.min(G.cast + 1, CASTS) + '<small>/' + CASTS + '</small>';
@@ -1378,14 +1502,16 @@ function draw() {
       if (G.hooked) { ctx.save(); ctx.translate(bx, by + 4); ctx.rotate(Math.atan2(by - W.player.y, bx - W.player.x) + Math.sin(t * 14) * .2); ctx.globalAlpha = .5; ctx.fillStyle = '#16303C'; shadowPath(ctx, G.hooked.body, 20 * G.hooked.scale); ctx.fill(); ctx.restore(); ctx.globalAlpha = 1; }
       ctx.strokeStyle = `rgba(255,255,255,${.4 + .3 * G.reel.tension})`; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(bx, by, 6 + Math.sin(t * 12) * 2, 0, 6.283); ctx.stroke();
     }
-    ctx.strokeStyle = 'rgba(35,52,42,.6)'; ctx.lineWidth = .8;
+    ctx.strokeStyle = lineLook(); ctx.lineWidth = .8;
     ctx.beginPath(); ctx.moveTo(tip.x, tip.y); ctx.quadraticCurveTo((tip.x + bx) / 2, (tip.y + by) / 2 - 16 - lift + (G.state === 'reel' && G.reel ? 14 * G.reel.tension : 0), bx, by - lift); ctx.stroke();
     let dip = 0;
     if (G.state === 'wait') dip = Math.sin(t * 5) * .6 + (G.hooked && G.st > G.biteAt - .6 ? Math.sin(t * 30) * 1.2 : 0);
     if (G.state === 'bite') dip = 2.5;
     if (G.state !== 'reel') {
-      ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(bx, by - lift + dip, 3.6, 0, 6.283); ctx.fill();
-      ctx.fillStyle = '#C0492F'; ctx.beginPath(); ctx.arc(bx, by - lift + dip, 3.6, Math.PI, 0); ctx.fill();
+      const bl = bobberLook();
+      ctx.fillStyle = bl.base; ctx.beginPath(); ctx.arc(bx, by - lift + dip, 3.6, 0, 6.283); ctx.fill();
+      ctx.fillStyle = bl.top; ctx.beginPath(); ctx.arc(bx, by - lift + dip, 3.6, Math.PI, 0); ctx.fill();
+      ctx.strokeStyle = 'rgba(35,52,42,.35)'; ctx.lineWidth = .4; ctx.beginPath(); ctx.arc(bx, by - lift + dip, 3.6, 0, 6.283); ctx.stroke();
     }
   }
   // the angler, sitting at the end of the pier
@@ -1577,7 +1703,7 @@ function showToast(e) {
       ${e.isNew ? '<span class="newTag" style="margin:0">NEW</span>' : ''}${e.isPB ? '<span class="newTag pb" style="margin:0">PB</span>' : ''}<span class="w">${e.w.toFixed(2)} kg</span></div>`;
     card.classList.add('on'); paintFishCanvas(card.querySelector('canvas'), sp);
     G.toastHold = 3;
-  } else { el.innerHTML = `<div class="tx"><b>${e.why}</b><small>${G.practice ? exploreLeft() + ' explore casts left today' : 'Cast ' + G.cast + ' of ' + CASTS}</small></div>`; el.classList.add('on'); G.toastHold = 2.1; }
+  } else { el.innerHTML = `<div class="tx"><b>${e.why}</b><small>${G.practice ? (isClub() ? 'Club · unlimited explore' : exploreLeft() + ' explore casts left today') : 'Cast ' + G.cast + ' of ' + CASTS}</small></div>`; el.classList.add('on'); G.toastHold = 2.1; }
 }
 function hideToast() { $('#toast').classList.remove('on'); $('#catchCard').classList.remove('on'); }
 
@@ -1616,7 +1742,9 @@ $('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet' || e.ta
 function finishDay() {
   const t = totals();
   if (!G.practice) {
-    history[G.day] = { pts: t.pts, kg: Math.round(t.kg * 100) / 100, venue: G.venue.id }; store.set('history', history);
+    const prev = history[G.day];   // a re-fish keeps whichever attempt scored more
+    if (!prev || t.pts > prev.pts) history[G.day] = { pts: t.pts, kg: Math.round(t.kg * 100) / 100, venue: G.venue.id };
+    store.set('history', history);
     try { host()?.submitScore?.({ day: G.day, venue: G.venue.id, seed: G.seed, pts: t.pts, kg: Math.round(t.kg * 100) / 100, casts: G.log.length, log: G.log }); } catch {}
   }
   setHint(G.practice ? 'Out of explore casts. More tomorrow.' : 'Done for today. New water tomorrow.');
@@ -1634,28 +1762,30 @@ function showResults() {
   const caught = G.log.filter(e => e.res === 'catch').length;
   const head = G.practice
     ? `<div class="bigScore"><div><span>New species</span><b>${G.newCount}</b></div><div><span>Personal bests</span><b>${G.pbCount}</b></div><div><span>Caught</span><b>${caught}<small style="font-size:13px">/${G.log.length}</small></b></div></div>
-       <p class="note">Unranked. ${exploreLeft() ? exploreLeft() + ' explore casts left today.' : 'That was the last of today’s explore casts. More tomorrow.'}</p>`
+       <p class="note">Unranked. ${isClub() ? 'Club members explore without a cap.' : exploreLeft() ? exploreLeft() + ' explore casts left today.' : 'That was the last of today’s explore casts. More tomorrow.'}</p>`
     : '';
   openSheet(`<div class="panelHead"><h2>${G.practice ? 'Exploration' : 'Today’s bag'}</h2><button class="close">✕</button></div>${head}
     <div class="bigScore"${G.practice ? ' hidden' : ''}><div><span>Points</span><b>${t.pts}</b></div><div><span>Weight</span><b>${t.kg.toFixed(1)}<small style="font-size:13px"> kg</small></b></div>
     <div><span>Caught</span><b>${G.log.filter(e => e.res === 'catch').length}<small style="font-size:13px">/${CASTS}</small></b></div></div>
-    ${!G.practice && host()?.openSignIn && !player() ? `<p class="note"><b>Sign in to post this score</b> to the daily leaderboard and chase the Master Baiter tag. <button class="btn" id="signPost" style="min-height:34px;padding:6px 12px;margin-left:4px">Sign in</button></p>` : ''}
+    ${!G.practice && canAuth() && !player() ? `<p class="note"><b>Sign in to post this score</b> to the daily leaderboard and chase the Master Baiter tag. <button class="btn" id="signPost" style="min-height:34px;padding:6px 12px;margin-left:4px">Sign in</button></p>` : ''}
     <div class="secHead">Casts</div><div class="rows">${rows}</div>
+    ${!G.practice && host()?.startRefish ? refishBlock() : ''}
     <div class="btnRow">${G.practice ? '' : '<button class="p" id="shareBtn">Share</button>'}<button class="s" id="practiceBtn">${G.practice ? 'Other water' : 'Explore'}</button><button class="s" id="homeBtn">Home</button></div>`);
   const sb = $('#shareBtn');
   if (sb) sb.onclick = async () => { const txt = shareText(); try { if (navigator.share) await navigator.share({ text: txt }); else { await navigator.clipboard.writeText(txt); sb.textContent = 'Copied'; } } catch {} };
   $('#practiceBtn').onclick = () => { closeSheet(); showPractice(); };
-  const sp = $('#signPost'); if (sp) sp.onclick = () => host()?.openSignIn?.();
+  const sp = $('#signPost'); if (sp) sp.onclick = () => showAuth('signin');
+  bindRefish();
   $('#homeBtn').onclick = () => { closeSheet(); showScreen('home'); };
 }
-function showBoard() {
+function showLocalBoard() {
   const days = Object.keys(history).sort((a, b) => history[b].pts - history[a].pts).slice(0, 10), mb = masterBaiter(), today = dayNumber();
   const rows = days.length ? days.map((d, i) => `<div class="row${+d === today ? ' me' : ''}"><span class="n">${i + 1}</span><span class="nm">Day #${d}${d === mb ? '<span class="mb">Master Baiter</span>' : ''}<small>${(VENUES.find(v => v.id === history[d].venue) || {}).name || ''}</small></span><span class="v">${history[d].pts}</span></div>`).join('')
     : `<div class="row"><span class="nm" style="color:var(--dim)">Finish today’s water to post a score.</span></div>`;
   openSheet(`<div class="panelHead"><h2>Leaderboard</h2><button class="close">✕</button></div>
     <p class="note" style="margin-top:0">The top score each day earns the <span class="mb" style="margin:0">Master Baiter</span> tag. Bigger and rarer fish score more.</p>
     <div class="secHead">Your best days</div><div class="rows">${rows}</div>
-    <p class="note">Global and friends leaderboards arrive once accounts are set up. For now this board only shows scores from this device.</p>`);
+    <p class="note">This board shows scores from this device. The global board appears when you play on the Daily Baits website.</p>`);
 }
 let bookVenue = null;
 function showBook() {
@@ -1692,15 +1822,205 @@ function showHow() {
 function showExploreDone() {
   openSheet(`<div class="panelHead"><h2>Explore</h2><button class="close">✕</button></div>
     <p class="note" style="margin-top:0">You have used all ${EXPLORE_CASTS} explore casts for today. They refill tomorrow, and today’s ranked water is still open on the home page.</p>
+    ${canBuy() ? `<div class="shopCard club"><h3>Fish without a cap</h3><p>Daily Baits Club members explore as much as they like, every day.</p><div class="buyRow"><button class="gold" id="seeClub">See the Club</button></div></div>` : ''}
     <div class="btnRow"><button class="s" id="bookGo">Open the handbook</button></div>`);
   $('#bookGo').onclick = showBook;
+  const sc = $('#seeClub'); if (sc) sc.onclick = () => showShop();
 }
 function showPractice() {
   if (exploreLeft() <= 0) return showExploreDone();
   openSheet(`<div class="panelHead"><h2>Explore</h2><button class="close">✕</button></div>
-    <p class="note" style="margin-top:0">Unranked fishing on any water. Chase personal bests and discover new species for the handbook. <b>${exploreLeft()} of ${EXPLORE_CASTS}</b> explore casts left today, shared across all waters.</p>
+    <p class="note" style="margin-top:0">Unranked fishing on any water. Chase personal bests and discover new species for the handbook. ${isClub() ? '<b>Club:</b> no daily cap.' : `<b>${exploreLeft()} of ${EXPLORE_CASTS}</b> explore casts left today, shared across all waters.`}</p>
     <div class="venueStrip" style="margin-top:10px">${VENUES.map(v => `<button class="vCard" data-v="${v.id}"><img src="${v.img}" alt=""><span class="t"><b>${v.name}</b><small>${v.mood}</small></span></button>`).join('')}</div>`);
   document.querySelectorAll('#panel .vCard').forEach(b => b.onclick = () => { closeSheet(); startGame(true, b.dataset.v); });
+}
+
+/* =====================================================================
+   MENU, ACCOUNT, SHOP, BOARD
+   ===================================================================== */
+const ICON = {
+  how: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.7.3-1 .8-1 1.5v.5"/><path d="M12 16.8v.2"/></svg>',
+  book: '<svg viewBox="0 0 24 24"><path d="M4 5.5C6.5 4.3 9 4.3 11.5 5.5v13C9 17.3 6.5 17.3 4 18.5Z"/><path d="M20 5.5c-2.5-1.2-5-1.2-7.5 0v13c2.5-1.2 5-1.2 7.5 0Z"/></svg>',
+  board: '<svg viewBox="0 0 24 24"><path d="M6 20v-6"/><path d="M12 20V7"/><path d="M18 20v-9"/></svg>',
+  club: '<svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0Z"/><path d="M8 6H5a3 3 0 0 0 3 4"/><path d="M16 6h3a3 3 0 0 1-3 4"/><path d="M12 13v4"/><path d="M8.5 20h7"/></svg>',
+  you: '<svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.4"/><path d="M5.5 20c.8-3.7 3.3-5.6 6.5-5.6s5.7 1.9 6.5 5.6"/></svg>',
+  explore: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="m15.5 8.5-2 5-5 2 2-5Z"/></svg>',
+  page: '<svg viewBox="0 0 24 24"><path d="M7 3.5h7l4 4V20.5H7Z"/><path d="M14 3.5v4h4"/></svg>',
+};
+const esc = t => String(t ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function showMenu() {
+  const h = host(), pages = h?.openPage ? [['/how-to-play', 'How to play'], ['/pricing', 'Pricing'], ['/about', 'About'], ['/privacy', 'Privacy'], ['/terms', 'Terms'], ['/refunds', 'Refund policy'], ['/contact', 'Contact']] : [];
+  openSheet(`<div class="panelHead"><h2>Menu</h2><button class="close">✕</button></div>
+    <div class="menuList">
+      <button data-m="how">${ICON.how}How to fish</button>
+      <button data-m="explore">${ICON.explore}Explore<small>${isClub() ? 'Unlimited' : exploreText() + ' left'}</small></button>
+      <button data-m="book">${ICON.book}Handbook<small>${Object.keys(book).length}/${ALL_SPECIES.length}</small></button>
+      <button data-m="board">${ICON.board}Leaderboard</button>
+      ${canBuy() ? `<button data-m="shop">${ICON.club}Club &amp; shop${isClub() ? '<small>Member</small>' : ''}</button>` : ''}
+      <button data-m="you">${ICON.you}${player() ? 'Your profile' : canAuth() ? 'Sign in' : 'Your stats'}</button>
+    </div>
+    ${pages.length ? `<div class="secHead">Daily Baits</div><div class="menuList">${pages.map(([p, t]) => `<button data-p="${p}">${ICON.page}${t}</button>`).join('')}</div>` : ''}
+    <p class="note" style="text-align:center">Daily Baits · one water a day</p>`);
+  const go = { how: showHow, explore: showPractice, book: showBook, board: () => showBoard(), shop: () => showShop(), you: () => player() || !canAuth() ? showYou() : showAuth('signin') };
+  document.querySelectorAll('#panel [data-m]').forEach(b => b.onclick = () => go[b.dataset.m]());
+  document.querySelectorAll('#panel [data-p]').forEach(b => b.onclick = () => { closeSheet(); h.openPage(b.dataset.p); });
+}
+
+// Sign in / create account / reset password, inside the game, through the shell's auth.
+function showAuth(mode, then) {
+  const h = host();
+  if (!h?.signIn) { if (h?.openSignIn) h.openSignIn(); return; }
+  const titles = { signin: 'Sign in', signup: 'Create account', reset: 'Reset password' };
+  openSheet(`<div class="panelHead"><h2>${titles[mode]}</h2><button class="close">✕</button></div>
+    <p class="note" style="margin-top:0">${mode === 'reset' ? 'We’ll email you a link to choose a new password.' : 'Save your catches, post your daily score and chase the Master Baiter tag.'}</p>
+    <form id="authForm" autocomplete="on">
+      ${mode === 'signup' ? '<label class="field"><span>Public name</span><input name="name" required minlength="3" maxlength="20" autocomplete="nickname"></label>' : ''}
+      <label class="field"><span>Email</span><input name="email" type="email" required autocomplete="email"></label>
+      ${mode !== 'reset' ? `<label class="field"><span>Password</span><input name="password" type="password" required minlength="6" autocomplete="${mode === 'signup' ? 'new-password' : 'current-password'}"></label>` : ''}
+      <div class="err" id="authErr"></div>
+      <div class="btnRow" style="margin-top:6px"><button class="p" type="submit" id="authGo">${mode === 'signin' ? 'Sign in' : mode === 'signup' ? 'Create account' : 'Send link'}</button></div>
+    </form>
+    ${mode !== 'reset' && h.signInWithProvider ? `<div class="sep">or</div><div class="oauth"><button data-prov="google">Continue with Google</button><button data-prov="apple">Continue with Apple</button></div>` : ''}
+    <p class="note" style="text-align:center;margin-top:14px">
+      ${mode === 'signin' ? '<button class="linkBtn" data-mode="reset">Forgot password?</button> · New here? <button class="linkBtn" data-mode="signup">Create an account</button>'
+        : '<button class="linkBtn" data-mode="signin">I already have an account</button>'}</p>`);
+  document.querySelectorAll('#panel [data-mode]').forEach(b => b.onclick = () => showAuth(b.dataset.mode, then));
+  const err = $('#authErr'), done = async () => { closeSheet(); await refreshAccount(); if (then) then(); };
+  document.querySelectorAll('#panel [data-prov]').forEach(b => b.onclick = async () => { try { await h.signInWithProvider(b.dataset.prov); await done(); } catch (e) { err.textContent = String(e?.message || e); } });
+  $('#authForm').onsubmit = async ev => {
+    ev.preventDefault();
+    const f = new FormData(ev.target), btn = $('#authGo'); btn.disabled = true; err.textContent = '';
+    try {
+      if (mode === 'reset') { await h.resetPassword(f.get('email')); err.className = 'ok'; err.textContent = 'Check your email for the link.'; }
+      else if (mode === 'signup') {
+        const r = await h.signUp(f.get('email'), f.get('password'), String(f.get('name')).trim());
+        if (r && r.needsConfirm) { err.className = 'ok'; err.textContent = 'Almost there: confirm your email, then sign in.'; } else await done();
+      } else { await h.signIn(f.get('email'), f.get('password')); await done(); }
+    } catch (e) { err.className = 'err'; err.textContent = String(e?.message || e || 'That didn’t work.'); }
+    btn.disabled = false;
+  };
+}
+
+function bobberSwatch(top, base) { return `<i style="background:linear-gradient(${top} 50%, ${base} 50%)"></i>`; }
+function showYou() {
+  const h = host(), me = player(), daysPlayed = Object.keys(history).length;
+  const bestDay = Object.values(history).reduce((m, d) => Math.max(m, d.pts), 0);
+  const stats = `<div class="statGrid"><div><span>Streak</span><b>${streak()}</b></div><div><span>Days</span><b>${daysPlayed}</b></div><div><span>Best day</span><b>${bestDay}</b></div>
+    <div><span>Species</span><b>${Object.keys(book).length}<small style="font-size:11px;color:var(--dim)">/${ALL_SPECIES.length}</small></b></div>
+    <div style="grid-column:span 2"><span>Biggest fish</span><b style="font-size:15px">${records.biggest ? esc(spById(records.biggest.sp).name) + ' · ' + records.biggest.w.toFixed(2) + ' kg' : '—'}</b></div></div>`;
+  const look = bobberLook();
+  const custom = `<div class="secHead">Your bobber</div>
+    <div class="swatches">${BOBBERS.map(b => { const locked = b.club && !isClub(); return `<button class="swatch${(CUST.bobber || 'classic') === b.id && !CUST.bobberColor ? ' on' : ''}" data-bob="${b.id}" title="${b.name}${locked ? ' (Club)' : ''}" ${locked ? 'data-locked="1"' : ''}>${bobberSwatch(b.top, b.base)}${locked ? '<span class="lock">CLUB</span>' : ''}</button>`; }).join('')}</div>
+    <div class="secHead">Custom colours ${owns('bobber') || owns('line') ? '' : canBuy() ? '<button class="linkBtn" id="buyColours" style="margin-left:6px">Get them</button>' : ''}</div>
+    <div class="note" style="margin:0 0 4px">Bobber${owns('bobber') ? '' : ' · locked'}</div>
+    <div class="swatches">${COLOURS.map(c => `<button class="swatch${CUST.bobberColor === c ? ' on' : ''}" data-bc="${c}" ${owns('bobber') ? '' : 'disabled'}>${bobberSwatch(c, look.base)}</button>`).join('')}
+      ${owns('bobber') ? `<label class="swatch" title="Any colour"><i style="background:conic-gradient(red,orange,yellow,green,blue,violet,red)"></i><input type="color" id="bcAny" value="${CUST.bobberColor || '#C0492F'}"></label>` : ''}</div>
+    <div class="note" style="margin:8px 0 4px">Line${owns('line') ? '' : ' · locked'}</div>
+    <div class="swatches">${COLOURS.map(c => `<button class="swatch${CUST.lineColor === c ? ' on' : ''}" data-lc="${c}" ${owns('line') ? '' : 'disabled'}><i style="background:${c};border-radius:3px;height:6px;width:26px"></i></button>`).join('')}
+      ${owns('line') ? `<label class="swatch" title="Any colour"><i style="background:conic-gradient(red,orange,yellow,green,blue,violet,red)"></i><input type="color" id="lcAny" value="${CUST.lineColor || '#23342A'}"></label>` : ''}</div>`;
+  const account = me ? `<div class="youHead"><div class="avatar">${esc(me.name[0] || '?').toUpperCase()}</div><div style="flex:1;min-width:0"><b>${esc(me.name)}${isClub() ? '<span class="clubPill">Club</span>' : ''}</b><small>${isClub() ? 'Daily Baits Club member' : 'Free player'}</small></div>
+      ${h?.renameMe ? '<button class="linkBtn" id="renameGo">Rename</button>' : ''}</div>
+      <div id="renameBox"></div>
+      ${canBuy() ? `<div class="shopCard${isClub() ? '' : ' club'}"><h3>${isClub() ? 'Daily Baits Club' : 'Join the Club'}</h3><p>${isClub() ? 'Unlimited explore, 2 re-fishes a day and every bobber style.' : 'Unlimited explore, 2 re-fishes a day, every bobber style and a Club badge.'}</p>
+        <div class="buyRow">${isClub() ? '<button id="manageGo">Manage membership</button>' : '<button class="gold" id="clubGo">See the Club</button>'}<button id="shopGo">Shop</button></div></div>` : ''}`
+    : `<div class="shopCard"><h3>Playing as a guest</h3><p>Your catches are saved on this device only. ${canAuth() ? 'Sign in to keep them, post your daily score and chase the Master Baiter tag.' : ''}</p>
+      ${canAuth() ? '<div class="buyRow"><button class="p" id="signGo">Sign in</button><button id="joinGo">Create account</button></div>' : ''}</div>`;
+  openSheet(`<div class="panelHead"><h2>${me ? 'Your profile' : 'You'}</h2><button class="close">✕</button></div>${account}
+    <div class="secHead">Stats</div>${stats}${custom}
+    ${me ? `<div class="btnRow"><button class="s" id="outGo">Sign out</button>${h?.deleteAccount ? '<button class="s danger" id="delGo">Delete account</button>' : ''}</div>` : ''}`);
+  const on = (id, fn) => { const el = $('#' + id); if (el) el.onclick = fn; };
+  on('signGo', () => showAuth('signin')); on('joinGo', () => showAuth('signup'));
+  on('clubGo', () => showShop()); on('shopGo', () => showShop()); on('buyColours', () => showShop('colours'));
+  on('manageGo', () => h.manageMembership?.());
+  on('outGo', async () => { try { await h.signOut(); } catch {} closeSheet(); await refreshAccount(); });
+  on('delGo', async () => { if (!confirm('Delete your Daily Baits account? Your scores and purchases go with it, and any Club membership is cancelled. This cannot be undone.')) return; try { await h.deleteAccount(); closeSheet(); await refreshAccount(); } catch (e) { alert(String(e?.message || e)); } });
+  on('renameGo', () => {
+    $('#renameBox').innerHTML = `<form id="renForm"><label class="field"><span>New public name</span><input name="n" required minlength="3" maxlength="20" value="${esc(me.name)}"></label><div class="err" id="renErr"></div><div class="btnRow" style="margin-top:4px"><button class="p" type="submit">Save name</button></div></form>`;
+    $('#renForm').onsubmit = async ev => { ev.preventDefault(); try { await h.renameMe(String(new FormData(ev.target).get('n')).trim()); await refreshAccount(); showYou(); } catch (e) { $('#renErr').textContent = String(e?.message || e); } };
+  });
+  document.querySelectorAll('#panel [data-bob]').forEach(b => b.onclick = () => { if (b.dataset.locked) return canBuy() ? showShop() : null; CUST.bobber = b.dataset.bob; CUST.bobberColor = null; saveCust(); showYou(); });
+  document.querySelectorAll('#panel [data-bc]').forEach(b => b.onclick = () => { CUST.bobberColor = b.dataset.bc; saveCust(); showYou(); });
+  document.querySelectorAll('#panel [data-lc]').forEach(b => b.onclick = () => { CUST.lineColor = b.dataset.lc; saveCust(); showYou(); });
+  const bc = $('#bcAny'); if (bc) bc.onchange = () => { CUST.bobberColor = bc.value; saveCust(); showYou(); };
+  const lc = $('#lcAny'); if (lc) lc.onchange = () => { CUST.lineColor = lc.value; saveCust(); showYou(); };
+}
+
+function showShop(focus) {
+  const h = host();
+  const save = PRICES?.amounts?.club_monthly && PRICES?.amounts?.club_yearly ? Math.round(12 - PRICES.amounts.club_yearly / PRICES.amounts.club_monthly) : 4;
+  const vat = PRICES ? (PRICES.taxed ? 'Prices include VAT.' : 'Any VAT is added at checkout.') : 'Prices include VAT.';
+  const tokens = (ACC.refishTokens || 0), both = owns('bobber') && owns('line');
+  openSheet(`<div class="panelHead"><h2>Club &amp; shop</h2><button class="close">✕</button></div>
+    <p class="note" style="margin-top:0">Daily Baits is free to play: the daily water, Explore, the handbook and the leaderboard. These are optional extras.</p>
+    <div class="err" id="shopErr"></div>
+    <div class="shopCard club" id="sClub"><h3>Daily Baits Club${isClub() ? '<span class="owned">You’re a member</span>' : ''}</h3>
+      <ul><li>Unlimited Explore, with no daily cap</li><li>2 re-fishes of today’s water, every day</li><li>Every bobber style, including gold</li><li>A Club badge on the leaderboard</li><li>Cancel anytime</li></ul>
+      <div class="buyRow">${isClub() ? '<button id="manageGo">Manage membership</button>'
+        : `<button class="gold" data-buy="club_yearly">${price('club_yearly')} / year<small>${save} months free</small></button><button data-buy="club_monthly">${price('club_monthly')} / month<small>Cancel anytime</small></button>`}</div></div>
+    <div class="shopCard" id="sRefish"><h3>Re-fish${tokens ? `<span class="owned">You have ${tokens}</span>` : ''}</h3>
+      <p>Another go at today’s water once you’ve finished it. Your best score counts. Unused re-fishes never expire.</p>
+      <div class="buyRow"><button data-buy="refish_single">1 re-fish<small>${price('refish_single')}</small></button><button class="p" data-buy="refish_pack3">3 re-fishes<small>${price('refish_pack3')}</small></button></div></div>
+    <div class="shopCard" id="sColours"><h3>Custom colours${both ? '<span class="owned">Owned</span>' : ''}</h3>
+      <p>Pick any colour for your bobber, your line, or both. Yours to keep, and not part of the Club.</p>
+      <div class="buyRow"><button data-buy="custom_bobber" ${owns('bobber') ? 'disabled' : ''}>Bobber<small>${owns('bobber') ? 'Owned' : price('custom_bobber')}</small></button>
+        <button data-buy="custom_line" ${owns('line') ? 'disabled' : ''}>Line<small>${owns('line') ? 'Owned' : price('custom_line')}</small></button>
+        <button class="p" data-buy="custom_pair" ${owns('bobber') || owns('line') ? 'disabled' : ''}>Both<small>${price('custom_pair')}</small></button></div></div>
+    <p class="note">${vat} Payments are processed securely by Stripe.${h?.openPage ? ' <button class="linkBtn" data-p="/refunds">Refund policy</button> · <button class="linkBtn" data-p="/terms">Terms</button>' : ''}</p>`);
+  document.querySelectorAll('#panel [data-buy]').forEach(b => b.onclick = () => buy(b.dataset.buy, 'shop'));
+  document.querySelectorAll('#panel [data-p]').forEach(b => b.onclick = () => { closeSheet(); h.openPage(b.dataset.p); });
+  const m = $('#manageGo'); if (m) m.onclick = () => h.manageMembership?.();
+  if (focus) { const el = $(focus === 'refish' ? '#sRefish' : focus === 'colours' ? '#sColours' : '#sClub'); if (el) el.scrollIntoView({ block: 'center' }); }
+}
+
+// Re-fish: after today's round, spend a Club re-fish or a bought one for a fresh ten casts.
+const refishLeft = () => (isClub() ? ACC.clubRefishLeft || 0 : 0) + (ACC.refishTokens || 0) + (ACC.refishArmed ? 1 : 0);
+function refishBlock() {
+  const n = refishLeft();
+  return `<div class="shopCard"><h3>Fish today again</h3><p>A fresh ten casts on today’s water. Your best score is the one that counts.</p>
+    <div class="buyRow">${n ? `<button class="p" id="refishGo">Re-fish now<small>${n} available${isClub() && ACC.clubRefishLeft ? ' · Club' : ''}</small></button>`
+      : canBuy() ? `<button class="p" data-buy="refish_single">1 re-fish<small>${price('refish_single')}</small></button><button data-buy="refish_pack3">3 re-fishes<small>${price('refish_pack3')}</small></button>${isClub() ? '' : '<button class="gold" id="clubGo2">Club: 2 a day</button>'}` : ''}</div>
+    <div class="err" id="shopErr"></div></div>`;
+}
+function bindRefish() {
+  const go = $('#refishGo'); if (go) go.onclick = doRefish;
+  document.querySelectorAll('#panel [data-buy]').forEach(b => b.onclick = () => buy(b.dataset.buy, 'refish'));
+  const c = $('#clubGo2'); if (c) c.onclick = () => showShop();
+}
+async function doRefish() {
+  const h = host(); if (!h?.startRefish) return;
+  if (!player()) return showAuth('signin', doRefish);
+  let r; try { r = await h.startRefish(dayNumber()); } catch (e) { r = { ok: false, reason: String(e?.message || e) }; }
+  if (!r || !r.ok) { const el = $('#shopErr'); if (el) el.textContent = r?.reason || 'No re-fish available.'; return; }
+  store.set('run.' + dayNumber(), { seed: dailySeed(dayNumber()), log: [], refish: true });
+  closeSheet(); await refreshAccount(); startGame(false);
+}
+
+// Leaderboard with tabs. The shell supplies the global board; without it the game shows this device's days.
+let boardScope = 'today';
+async function showBoard(scope) {
+  const h = host();
+  if (!h?.leaderboard) return showLocalBoard();
+  boardScope = scope || boardScope;
+  const tabs = [['today', 'Today'], ['week', 'This week'], ['all', 'All time']].map(([k, t]) => `<button class="tab${k === boardScope ? ' on' : ''}" data-sc="${k}">${t}</button>`).join('');
+  openSheet(`<div class="panelHead"><h2>Leaderboard</h2><button class="close">✕</button></div>
+    <p class="note" style="margin-top:0">Today’s top score earns the <span class="mb" style="margin:0">Master Baiter</span> tag.</p>
+    <div class="tabs">${tabs}</div><div class="rows" id="boardBody"><div class="row"><span class="nm" style="color:var(--dim)">Loading…</span></div></div>
+    <div id="boardMore"></div>`);
+  document.querySelectorAll('#panel [data-sc]').forEach(b => b.onclick = () => showBoard(b.dataset.sc));
+  let d; try { d = await h.leaderboard(boardScope); } catch { d = null; }
+  if (!$('#boardBody')) return;
+  if (!d) { $('#boardBody').innerHTML = '<div class="row"><span class="nm" style="color:var(--dim)">The leaderboard didn’t load. Try again in a moment.</span></div>'; return; }
+  const row = r => `<div class="row${r.me ? ' me' : ''}"><span class="n">${r.rank}</span><span class="nm">${esc(r.name)}${r.master ? '<span class="mb">Master Baiter</span>' : ''}${r.club ? '<span class="clubPill">Club</span>' : ''}<small>${(+r.kg || 0).toFixed(1)} kg</small></span><span class="v">${r.pts}</span></div>`;
+  const rows = d.rows || [];
+  let html = rows.length ? rows.map(row).join('') : `<div class="row"><span class="nm" style="color:var(--dim)">${boardScope === 'today' ? 'No scores yet today. Be the first.' : 'No scores yet.'}</span></div>`;
+  if (d.me && !rows.some(r => r.me)) html += '<div class="row gap">· · ·</div>' + row(Object.assign({ me: true, name: player()?.name || 'You' }, d.me));
+  $('#boardBody').innerHTML = html;
+  let more = '';
+  if (!player() && canAuth()) more += `<div class="btnRow"><button class="p" id="boardSign">Sign in to post your score</button></div>`;
+  if (boardScope === 'today' && d.hall && d.hall.length) more += `<div class="secHead">Hall of fame</div><div class="rows">${d.hall.map(x => `<div class="row"><span class="n" style="width:auto">#${x.day}</span><span class="nm">${esc(x.name)}<span class="mb">Master Baiter</span></span><span class="v">${x.pts}</span></div>`).join('')}</div>`;
+  $('#boardMore').innerHTML = more;
+  const bs = $('#boardSign'); if (bs) bs.onclick = () => showAuth('signin');
 }
 
 /* =====================================================================
@@ -1715,34 +2035,40 @@ function renderHome() {
   $('#todayWhere').textContent = `${v.mood.split(' · ')[0]} · wind ${windArrow(w)} ${Math.round(w.s * 9)} m/s`;
   const s = streak(); $('#streakNum').textContent = s;
   const h = host(), me = player();
-  $('#tSignIn').hidden = !h?.openSignIn; $('.topTools').classList.toggle('withSign', !!h?.openSignIn);
-  $('#tSignIn').textContent = me ? me.name : 'Sign in'; $('#tSignIn').classList.toggle('me', !!me);
+  $('#tSignIn').hidden = !canAuth();
+  $('#tSignIn').innerHTML = me ? `<span class="nm">${esc(me.name)}</span><span class="ini">${esc((me.name[0] || '?').toUpperCase())}</span>` : 'Sign in'; $('#tSignIn').classList.toggle('me', !!me);
   $('#whoLine').textContent = (me ? 'Playing as ' + me.name : 'Playing as a guest') + ' · Daily Baits';
   $('#startChip').hidden = !s; $('#startChipN').textContent = s;
-  if (done) { $('#startTxt').textContent = 'See today’s bag'; $('#startSub').textContent = `${history[day].pts} points · new water tomorrow`; }
+  if (saved && saved.refish && saved.log.length < CASTS) { $('#startTxt').textContent = 'Re-fish today'; $('#startSub').textContent = `${CASTS - saved.log.length} casts left · best so far ${history[day] ? history[day].pts : 0} pts`; }
+  else if (done) { $('#startTxt').textContent = 'See today’s bag'; $('#startSub').textContent = `${history[day].pts} points · ${refishLeft() ? 'a re-fish is ready' : 'new water tomorrow'}`; }
   else if (saved && saved.log && saved.log.length) { $('#startTxt').textContent = 'Keep fishing'; $('#startSub').textContent = `${CASTS - saved.log.length} casts left today`; }
   else { $('#startTxt').textContent = 'Fish today'; $('#startSub').textContent = '10 casts · about 4 minutes'; }
-  $('#hExploreSub').textContent = exploreLeft() ? `Unranked · ${exploreLeft()} casts left` : 'Out of casts · back tomorrow';
+  $('#hExploreSub').textContent = isClub() ? 'Unranked · unlimited (Club)' : exploreLeft() ? `Unranked · ${exploreLeft()} casts left` : 'Out of casts · back tomorrow';
   $('#hBookSub').textContent = `${Object.keys(book).length} of ${ALL_SPECIES.length} species`;
   const labels = ['Today', 'Tomorrow', 'In 2 days', 'In 3 days'];
   $('#venueStrip').innerHTML = [0, 1, 2, 3].map(i => { const vv = venueFor(day + i); return `<button class="vCard" data-v="${vv.id}"><img src="${vv.img}" alt=""><span class="tag${i ? '' : ' today'}">${labels[i]}</span><span class="t"><b>${vv.name}</b><small>${vv.mood}</small></span></button>`; }).join('');
   document.querySelectorAll('#venueStrip .vCard').forEach((b, i) => b.onclick = () => i === 0 ? startGame(false) : startGame(true, b.dataset.v));
 }
 function showScreen(name) {
-  $('#home').hidden = name !== 'home'; $('#game').hidden = name !== 'game';
+  $('#home').hidden = name !== 'home'; $('#game').hidden = name !== 'game'; $('#tabBar').hidden = name !== 'home';
   if (name === 'home') renderHome(); else requestAnimationFrame(resize);
   window.scrollTo(0, 0);
 }
 $('#startBtn').onclick = () => startGame(false);
 $('#hPractice').onclick = showPractice;
 $('#hBook').onclick = showBook;
-// The shell's leaderboard page replaces the local one when it exists.
-const openBoard = () => { const h = host(); if (h?.openLeaderboard) h.openLeaderboard(); else showBoard(); };
-$('#hBoard').onclick = $('#tBoard').onclick = openBoard;
-$('#tSignIn').onclick = () => { const h = host(); if (player()) h?.openProfile ? h.openProfile() : h?.openSignIn?.(); else h?.openSignIn?.(); };
-// The shell calls this after sign-in or sign-out so the home screen updates.
-window.dailyBaits = { refresh: () => { if (!$('#home').hidden) renderHome(); } };
-$('#hHow').onclick = $('#tHow').onclick = showHow;
+const openBoard = () => showBoard();
+$('#hBoard').onclick = openBoard;
+$('#tSignIn').onclick = () => player() ? showYou() : showAuth('signin');
+$('#burgerBtn').onclick = showMenu;
+$('#hHow').onclick = showHow;
+// Tab bar: each tab opens its sheet; closing the sheet returns to Fish.
+const TABS = { tabFish: null, tabBoard: () => showBoard(), tabBook: showBook, tabYou: showYou };
+function selectTab(id) { for (const k in TABS) $('#' + k).setAttribute('aria-selected', String(k === id)); }
+for (const id in TABS) $('#' + id).onclick = () => { if (!TABS[id]) { closeSheet(); return; } TABS[id](); selectTab(id); };
+new MutationObserver(() => { if (!$('#sheet').classList.contains('on')) selectTab('tabFish'); }).observe($('#sheet'), { attributes: true, attributeFilter: ['class'] });
+// The shell calls refresh() after sign-in, sign-out or a purchase, so the game re-reads the account.
+window.dailyBaits = { refresh: () => refreshAccount() };
 $('#bookBtn').onclick = showBook;
 $('#backBtn').onclick = () => showScreen('home');
 
@@ -1751,6 +2077,7 @@ $('#backBtn').onclick = () => showScreen('home');
    ===================================================================== */
 window.addEventListener('resize', resize);
 showScreen('home');
+refreshAccount();
 if (!store.get('seenHow', false)) { store.set('seenHow', true); showHow(); }
 requestAnimationFrame(frame);
 window.__dbBooted = true;
